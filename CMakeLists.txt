@@ -1,0 +1,93 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(TB2026_July_Analysis LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+list(APPEND CMAKE_PREFIX_PATH
+	/opt/homebrew
+	/usr/local
+)
+
+find_package(ROOT REQUIRED COMPONENTS
+	Core
+	RIO
+	Tree
+	Hist
+	Graf
+	Gpad
+	Matrix
+	RHTTP
+)
+
+find_package(cxxopts CONFIG QUIET)
+
+set(missing_dependencies)
+
+find_path(SPDLOG_INCLUDE_DIR
+	NAMES spdlog/spdlog.h
+	HINTS /opt/homebrew/include /usr/local/include
+)
+if(SPDLOG_INCLUDE_DIR)
+	add_library(spdlog_header_only INTERFACE)
+	target_include_directories(spdlog_header_only INTERFACE ${SPDLOG_INCLUDE_DIR})
+	target_compile_definitions(spdlog_header_only INTERFACE SPDLOG_HEADER_ONLY FMT_HEADER_ONLY)
+else()
+	list(APPEND missing_dependencies "spdlog (install spdlog or set SPDLOG_INCLUDE_DIR)")
+endif()
+
+if(NOT TARGET cxxopts::cxxopts)
+	find_path(CXXOPTS_INCLUDE_DIR
+		NAMES cxxopts.hpp
+		HINTS /opt/homebrew/include /usr/local/include
+	)
+	if(CXXOPTS_INCLUDE_DIR)
+		add_library(cxxopts_header_only INTERFACE)
+		add_library(cxxopts::cxxopts ALIAS cxxopts_header_only)
+		target_include_directories(cxxopts_header_only INTERFACE ${CXXOPTS_INCLUDE_DIR})
+	else()
+		list(APPEND missing_dependencies "cxxopts.hpp (install cxxopts or set cxxopts_DIR/CXXOPTS_INCLUDE_DIR)")
+	endif()
+endif()
+
+find_path(BINPARSE_INCLUDE_DIR
+	NAMES binparse/parser.hpp
+	HINTS ${PROJECT_SOURCE_DIR}/include /opt/homebrew/include /usr/local/include
+)
+if(NOT BINPARSE_INCLUDE_DIR)
+	list(APPEND missing_dependencies "binparse headers (place binparse/ under include/ or set BINPARSE_INCLUDE_DIR)")
+endif()
+
+if(missing_dependencies)
+	list(JOIN missing_dependencies "\n  - " missing_dependencies_text)
+	message(FATAL_ERROR "Missing dependencies for 001_Rootifier:\n  - ${missing_dependencies_text}")
+endif()
+
+add_executable(001_Rootifier
+	scripts/001_Rootifier.cxx
+)
+
+set_target_properties(001_Rootifier PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+target_include_directories(001_Rootifier PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
+target_link_libraries(001_Rootifier PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
+	ROOT::Matrix
+	ROOT::RHTTP
+	spdlog_header_only
+	cxxopts::cxxopts
+)

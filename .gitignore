@@ -1,0 +1,41 @@
+# Project data and generated outputs
+data/*
+dump/*
+build/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+Testing/
+CTestTestfile.cmake
+install_manifest.txt
+
+# Build products
+bin/
+lib/
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS/editor noise
+.DS_Store
+._*
+.vscode/
+.idea/
