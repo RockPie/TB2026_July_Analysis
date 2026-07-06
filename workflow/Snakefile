@@ -71,6 +71,41 @@ TEMPERATURE_ADC_SUM_OUTPUT = output_path_from_comparison_config(
 )
 
 
+def is_003_comparison_config(path):
+    try:
+        comparison_config = load_comparison_config(path)
+    except Exception as error:
+        print(f"Skipping malformed 003 config candidate {path}: {error}")
+        return False
+    if not isinstance(comparison_config.get("entries"), list) or not comparison_config["entries"]:
+        return False
+    if not comparison_config.get("output"):
+        return False
+    return all("raw" in entry or "histogram" in entry for entry in comparison_config["entries"])
+
+
+ADC_SUM_CONFIGS = sorted(
+    path
+    for path in Path("config").glob("*.json")
+    if not path.name.startswith("._") and is_003_comparison_config(path)
+)
+ADC_SUM_CONFIG_BY_STEM = {path.stem: path for path in ADC_SUM_CONFIGS}
+ADC_SUM_CONFIG_OUTPUTS = [output_path_from_comparison_config(path, f"dump/003/{path.stem}.pdf") for path in ADC_SUM_CONFIGS]
+ADC_SUM_CONFIG_MARKERS = expand("dump/003/config_runs/{config_stem}.done", config_stem=ADC_SUM_CONFIG_BY_STEM.keys())
+
+
+def config_path_for_stem(wildcards):
+    return str(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem])
+
+
+def roots_for_config_stem(wildcards):
+    return histogram_paths_from_comparison_config(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem])
+
+
+def output_for_config_stem(wildcards):
+    return output_path_from_comparison_config(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem], f"dump/003/{wildcards.config_stem}.pdf")
+
+
 rule all:
     input:
         expand("dump/001/{run}.raw/sample_events.root", run=RAW_RUNS),
@@ -80,6 +115,11 @@ rule all:
         "dump/003/adc_sum_comparison.pdf",
         TEMPERATURE_ADC_SUM_OUTPUT,
         "dump/004/qc_summary.pdf"
+
+
+rule run_all_003:
+    input:
+        ADC_SUM_CONFIG_MARKERS
 
 
 rule build_001_rootifier:
@@ -177,6 +217,26 @@ rule compare_adc_sums:
     shell:
         "mkdir -p $(dirname {log}) && "
         "{input.exe} --input {input.roots} --output {output} > {log} 2>&1"
+
+
+rule compare_adc_sums_config:
+    input:
+        config=config_path_for_stem,
+        roots=roots_for_config_stem,
+        exe="build/bin/003_ADC_Sum_Comparison"
+    output:
+        marker="dump/003/config_runs/{config_stem}.done"
+    params:
+        pdf=output_for_config_stem
+    log:
+        "dump/logs/003/{config_stem}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "mkdir -p $(dirname {output.marker}) && "
+        "{input.exe} --config {input.config} > {log} 2>&1 && "
+        "test -s {params.pdf} && touch {output.marker}"
 
 
 rule compare_adc_sums_temperature_config:

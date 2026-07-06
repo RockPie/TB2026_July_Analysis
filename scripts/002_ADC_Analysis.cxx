@@ -113,11 +113,22 @@ std::filesystem::path adc_sum_histogram_root_path(const std::string& output_path
 	return std::filesystem::path(output_path).parent_path() / "event_adc_sum_histograms.root";
 }
 
-void use_only_branches(TTree& tree, const std::vector<const char*>& branch_names)
+constexpr const char* kSampleEventTreeName = "FOCAL";
+constexpr const char* kLegacySampleEventTreeName = "sample_events";
+constexpr const char* kSampleEventBranchPrefix = "FOCALHCAL.";
+
+std::string g_sample_event_branch_prefix = kSampleEventBranchPrefix;
+
+std::string sample_event_branch_name(const char* member_name)
+{
+	return g_sample_event_branch_prefix + member_name;
+}
+
+void use_only_branches(TTree& tree, const std::vector<std::string>& branch_names)
 {
 	tree.SetBranchStatus("*", 0);
-	for (const auto* branch_name : branch_names) {
-		tree.SetBranchStatus(branch_name, 1);
+	for (const auto& branch_name : branch_names) {
+		tree.SetBranchStatus(branch_name.c_str(), 1);
 	}
 }
 
@@ -144,11 +155,11 @@ struct AnalysisProducts {
 
 AnalysisLayout scan_analysis_layout(TTree& tree)
 {
-	use_only_branches(tree, {"n_samples", "lpgbt_id"});
+	use_only_branches(tree, {sample_event_branch_name("n_samples"), sample_event_branch_name("lpgbt_id")});
 	std::vector<std::uint32_t>* n_samples = nullptr;
 	std::vector<std::uint8_t>* lpgbt_id = nullptr;
-	tree.SetBranchAddress("n_samples", &n_samples);
-	tree.SetBranchAddress("lpgbt_id", &lpgbt_id);
+	tree.SetBranchAddress(sample_event_branch_name("n_samples").c_str(), &n_samples);
+	tree.SetBranchAddress(sample_event_branch_name("lpgbt_id").c_str(), &lpgbt_id);
 
 	AnalysisLayout layout;
 	std::size_t max_count = 0;
@@ -201,17 +212,17 @@ AnalysisProducts collect_analysis_products(TTree& tree, const AnalysisLayout& la
 		products.lpgbts[id].channel_histograms = make_lpgbt_channel_histograms(id, layout.sample_bins);
 	}
 
-	use_only_branches(tree, {"val0", "lpgbt_id", "n_samples", "payload_offset", "payload_count"});
+	use_only_branches(tree, {sample_event_branch_name("val0"), sample_event_branch_name("lpgbt_id"), sample_event_branch_name("n_samples"), sample_event_branch_name("payload_offset"), sample_event_branch_name("payload_count")});
 	std::vector<std::uint16_t>* val0 = nullptr;
 	std::vector<std::uint8_t>* lpgbt_id = nullptr;
 	std::vector<std::uint32_t>* n_samples = nullptr;
 	std::vector<std::uint32_t>* payload_offset = nullptr;
 	std::vector<std::uint32_t>* payload_count = nullptr;
-	tree.SetBranchAddress("val0", &val0);
-	tree.SetBranchAddress("lpgbt_id", &lpgbt_id);
-	tree.SetBranchAddress("n_samples", &n_samples);
-	tree.SetBranchAddress("payload_offset", &payload_offset);
-	tree.SetBranchAddress("payload_count", &payload_count);
+	tree.SetBranchAddress(sample_event_branch_name("val0").c_str(), &val0);
+	tree.SetBranchAddress(sample_event_branch_name("lpgbt_id").c_str(), &lpgbt_id);
+	tree.SetBranchAddress(sample_event_branch_name("n_samples").c_str(), &n_samples);
+	tree.SetBranchAddress(sample_event_branch_name("payload_offset").c_str(), &payload_offset);
+	tree.SetBranchAddress(sample_event_branch_name("payload_count").c_str(), &payload_count);
 
 	const auto entries = tree.GetEntries();
 	for (Long64_t entry = 0; entry < entries; ++entry) {
@@ -528,18 +539,24 @@ void draw_waveform(const std::string& input_path, const std::string& output_path
 		throw std::runtime_error("failed to open input ROOT file: " + input_path);
 	}
 
-	auto* tree = dynamic_cast<TTree*>(input.Get("sample_events"));
+	auto* tree = dynamic_cast<TTree*>(input.Get(kSampleEventTreeName));
 	if (tree == nullptr) {
-		throw std::runtime_error("input ROOT file does not contain TTree 'sample_events': " + input_path);
+		tree = dynamic_cast<TTree*>(input.Get(kLegacySampleEventTreeName));
+		g_sample_event_branch_prefix.clear();
+	} else {
+		g_sample_event_branch_prefix = kSampleEventBranchPrefix;
 	}
-	if (tree->GetBranch("val0") == nullptr) {
-		throw std::runtime_error("TTree 'sample_events' does not contain branch 'val0': " + input_path);
+	if (tree == nullptr) {
+		throw std::runtime_error("input ROOT file does not contain TTree 'FOCAL' or legacy TTree 'sample_events': " + input_path);
 	}
-	if (tree->GetBranch("n_samples") == nullptr || tree->GetBranch("payload_offset") == nullptr || tree->GetBranch("payload_count") == nullptr) {
-		throw std::runtime_error("TTree 'sample_events' is missing sample layout branches: " + input_path);
+	if (tree->GetBranch(sample_event_branch_name("val0").c_str()) == nullptr) {
+		throw std::runtime_error("sample event tree does not contain branch '" + sample_event_branch_name("val0") + "': " + input_path);
 	}
-	if (tree->GetBranch("lpgbt_id") == nullptr) {
-		throw std::runtime_error("TTree 'sample_events' does not contain branch 'lpgbt_id': " + input_path);
+	if (tree->GetBranch(sample_event_branch_name("n_samples").c_str()) == nullptr || tree->GetBranch(sample_event_branch_name("payload_offset").c_str()) == nullptr || tree->GetBranch(sample_event_branch_name("payload_count").c_str()) == nullptr) {
+		throw std::runtime_error("sample event tree is missing sample layout branches under '" + g_sample_event_branch_prefix + "': " + input_path);
+	}
+	if (tree->GetBranch(sample_event_branch_name("lpgbt_id").c_str()) == nullptr) {
+		throw std::runtime_error("sample event tree does not contain branch '" + sample_event_branch_name("lpgbt_id") + "': " + input_path);
 	}
 
 	gStyle->SetOptStat(0);
@@ -578,9 +595,9 @@ int main(int argc, char** argv)
 	spdlog::info("Running script: {}", script_name);
 	spdlog::info("----------------------------------------");
 
-	cxxopts::Options options(script_name, "Draw accumulated val0 waveform from 001_Rootifier sample_events.root");
+	cxxopts::Options options(script_name, "Draw accumulated val0 waveform from 001_Rootifier sample_events.root FOCAL tree");
 	options.add_options()
-		("i,input", "Input sample_events.root file", cxxopts::value<std::string>())
+		("i,input", "Input sample_events.root file containing FOCAL/FOCALHCAL branches", cxxopts::value<std::string>())
 		("o,output", "Output PDF path", cxxopts::value<std::string>())
 		("h,help", "Print help");
 

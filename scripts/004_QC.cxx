@@ -16,6 +16,8 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <optional>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -30,10 +32,23 @@ struct QcPoint {
 	double reconstructed_percent = 0.0;
 	double crc_percent = 0.0;
 	double all_lpgbt_peak_events = 0.0;
+	double run_info_events = 0.0;
+	double run_info_triggers = 0.0;
 	std::map<std::string, double> line_percents;
 	bool has_reconstructed_percent = false;
 	bool has_crc_percent = false;
 	bool has_all_lpgbt_peak_events = false;
+	bool has_run_info_events = false;
+	bool has_run_info_triggers = false;
+};
+
+struct RunInfoRow {
+	std::time_t start_timestamp = 0;
+	std::time_t end_timestamp = 0;
+	double events = 0.0;
+	double triggers = 0.0;
+	bool has_events = false;
+	bool has_triggers = false;
 };
 
 std::string read_text_file(const std::filesystem::path& path)
@@ -53,6 +68,52 @@ std::string remove_commas(std::string text)
 	return text;
 }
 
+std::string trim(std::string text)
+{
+	const auto first = text.find_first_not_of(" \t\r\n");
+	if (first == std::string::npos) {
+		return {};
+	}
+	const auto last = text.find_last_not_of(" \t\r\n");
+	return text.substr(first, last - first + 1);
+}
+
+std::vector<std::string> split_csv_line(const std::string& line)
+{
+	std::vector<std::string> fields;
+	std::string field;
+	bool in_quotes = false;
+	for (const auto character : line) {
+		if (character == '"') {
+			in_quotes = !in_quotes;
+			continue;
+		}
+		if (character == ',' && !in_quotes) {
+			fields.push_back(trim(field));
+			field.clear();
+			continue;
+		}
+		field.push_back(character);
+	}
+	fields.push_back(trim(field));
+	return fields;
+}
+
+std::optional<double> parse_optional_count(std::string text)
+{
+	text = trim(text);
+	if (text.empty() || text == "-") {
+		return std::nullopt;
+	}
+	text.erase(std::remove_if(text.begin(), text.end(), [](unsigned char character) {
+		return character == ',' || std::isspace(character);
+	}), text.end());
+	if (text.empty() || text == "-") {
+		return std::nullopt;
+	}
+	return std::stod(text);
+}
+
 std::time_t parse_run_timestamp(const std::string& run_name)
 {
 	const std::regex pattern(R"(run__(\d{4})_(\d{2})_(\d{2})__(\d{2})_(\d{2})_(\d{2})__)");
@@ -69,6 +130,101 @@ std::time_t parse_run_timestamp(const std::string& run_name)
 	tm.tm_sec = std::stoi(match[6].str());
 	tm.tm_isdst = -1;
 	return std::mktime(&tm);
+}
+
+std::optional<std::time_t> parse_run_info_timestamp(const std::string& date_text, const std::string& time_text)
+{
+	const auto date = trim(date_text);
+	const auto time = trim(time_text);
+	if (date.empty() || time.empty()) {
+		return std::nullopt;
+	}
+	const std::regex date_pattern(R"((\d{1,2})/(\d{1,2})/(\d{2,4}))");
+	const std::regex time_pattern(R"((\d{1,2}):(\d{2}))");
+	std::smatch date_match;
+	std::smatch time_match;
+	if (!std::regex_match(date, date_match, date_pattern) || !std::regex_match(time, time_match, time_pattern)) {
+		return std::nullopt;
+	}
+	int year = std::stoi(date_match[3].str());
+	if (year < 100) {
+		year += 2000;
+	}
+	std::tm tm{};
+	tm.tm_mday = std::stoi(date_match[1].str());
+	tm.tm_mon = std::stoi(date_match[2].str()) - 1;
+	tm.tm_year = year - 1900;
+	tm.tm_hour = std::stoi(time_match[1].str());
+	tm.tm_min = std::stoi(time_match[2].str());
+	tm.tm_sec = 0;
+	tm.tm_isdst = -1;
+	return std::mktime(&tm);
+}
+
+std::vector<RunInfoRow> load_run_info_rows(const std::filesystem::path& path)
+{
+	std::vector<RunInfoRow> rows;
+	if (!std::filesystem::exists(path)) {
+		spdlog::warn("Run info CSV does not exist: {}", path.string());
+		return rows;
+	}
+	std::ifstream input(path);
+	if (!input) {
+		throw std::runtime_error("failed to open run info CSV: " + path.string());
+	}
+	std::string line;
+	while (std::getline(input, line)) {
+		const auto fields = split_csv_line(line);
+		if (fields.size() < 6 || fields[0] == "Date") {
+			continue;
+		}
+		const auto start = parse_run_info_timestamp(fields[0], fields[1]);
+		const auto end = parse_run_info_timestamp(fields[0], fields[2]);
+		if (!start.has_value() || !end.has_value()) {
+			continue;
+		}
+		RunInfoRow row;
+		row.start_timestamp = *start;
+		row.end_timestamp = *end;
+		if (row.end_timestamp < row.start_timestamp) {
+			row.end_timestamp += 24 * 60 * 60;
+		}
+		if (const auto events = parse_optional_count(fields[4])) {
+			row.events = *events;
+			row.has_events = true;
+		}
+		if (const auto triggers = parse_optional_count(fields[5])) {
+			row.triggers = *triggers;
+			row.has_triggers = true;
+		}
+		if (row.has_events || row.has_triggers) {
+			rows.push_back(row);
+		}
+	}
+	std::sort(rows.begin(), rows.end(), [](const auto& left, const auto& right) {
+		return left.start_timestamp < right.start_timestamp;
+	});
+	return rows;
+}
+
+void attach_run_info_counts(std::vector<QcPoint>& points, const std::vector<RunInfoRow>& rows)
+{
+	for (auto& point : points) {
+		const auto row = std::find_if(rows.begin(), rows.end(), [&point](const auto& candidate) {
+			return candidate.start_timestamp <= point.timestamp && point.timestamp <= candidate.end_timestamp;
+		});
+		if (row == rows.end()) {
+			continue;
+		}
+		if (row->has_events) {
+			point.run_info_events = row->events;
+			point.has_run_info_events = true;
+		}
+		if (row->has_triggers) {
+			point.run_info_triggers = row->triggers;
+			point.has_run_info_triggers = true;
+		}
+	}
 }
 
 std::string run_name_from_log_path(const std::filesystem::path& path)
@@ -163,6 +319,13 @@ std::vector<double> time_hours_from_first(const std::vector<QcPoint>& points)
 	return hours;
 }
 
+void apply_qc_margins(TCanvas& canvas)
+{
+	canvas.SetLeftMargin(0.13);
+	canvas.SetRightMargin(0.08);
+	canvas.SetBottomMargin(0.16);
+}
+
 void draw_header(const std::string& title, const std::string& subtitle)
 {
 	TLatex latex;
@@ -170,10 +333,10 @@ void draw_header(const std::string& title, const std::string& subtitle)
 	latex.SetTextFont(42);
 	latex.SetTextAlign(13);
 	latex.SetTextSize(0.042);
-	latex.DrawLatex(0.12, 0.88, "#bf{FoCal TB2026 July QC}");
+	latex.DrawLatex(0.145, 0.88, "#bf{FoCal TB2026 July QC}");
 	latex.SetTextSize(0.032);
-	latex.DrawLatex(0.12, 0.835, title.c_str());
-	latex.DrawLatex(0.12, 0.795, subtitle.c_str());
+	latex.DrawLatex(0.145, 0.835, title.c_str());
+	latex.DrawLatex(0.145, 0.795, subtitle.c_str());
 }
 
 void label_time_axis(TAxis& axis, const std::vector<QcPoint>& points, const std::vector<double>& hours)
@@ -181,6 +344,7 @@ void label_time_axis(TAxis& axis, const std::vector<QcPoint>& points, const std:
 	axis.SetTitle("run time");
 	axis.SetLabelSize(0.032);
 	axis.SetTitleSize(0.045);
+	axis.SetTitleOffset(1.25);
 	axis.SetNdivisions(static_cast<int>(std::min<std::size_t>(points.size(), 8)), false);
 	for (std::size_t index = 0; index < points.size() && index < hours.size(); ++index) {
 		const auto bin = axis.FindBin(hours[index]);
@@ -194,9 +358,7 @@ void draw_single_series(TCanvas& canvas, const std::string& pdf_path, const std:
 {
 	canvas.Clear();
 	canvas.SetLogy(0);
-	canvas.SetLeftMargin(0.12);
-	canvas.SetRightMargin(0.08);
-	canvas.SetBottomMargin(0.16);
+	apply_qc_margins(canvas);
 	TGraph graph(static_cast<int>(x.size()), x.data(), y.data());
 	graph.SetTitle((";run time;" + y_title).c_str());
 	graph.SetMarkerStyle(20);
@@ -206,7 +368,7 @@ void draw_single_series(TCanvas& canvas, const std::string& pdf_path, const std:
 	graph.SetLineWidth(2);
 	graph.Draw("APL");
 	if (percent_range) {
-		graph.GetYaxis()->SetRangeUser(0.0, 105.0);
+		graph.GetYaxis()->SetRangeUser(0.0, 130.0);
 	}
 	label_time_axis(*graph.GetXaxis(), points, x);
 	graph.GetXaxis()->LabelsOption("v");
@@ -220,9 +382,7 @@ void draw_line_type_page(TCanvas& canvas, const std::string& pdf_path, const std
 {
 	canvas.Clear();
 	canvas.SetLogy(0);
-	canvas.SetLeftMargin(0.12);
-	canvas.SetRightMargin(0.20);
-	canvas.SetBottomMargin(0.16);
+	apply_qc_margins(canvas);
 
 	const std::vector<std::pair<std::string, int>> series{
 		{"heartbeat line", kCyan + 2},
@@ -233,7 +393,7 @@ void draw_line_type_page(TCanvas& canvas, const std::string& pdf_path, const std
 		{"other line", kRed + 1},
 	};
 	std::vector<std::unique_ptr<TGraph>> graphs;
-	TLegend legend(0.82, 0.56, 0.98, 0.86);
+	TLegend legend(0.70, 0.64, 0.90, 0.88);
 	legend.SetBorderSize(0);
 	legend.SetFillStyle(0);
 	legend.SetTextSize(0.027);
@@ -252,7 +412,7 @@ void draw_line_type_page(TCanvas& canvas, const std::string& pdf_path, const std
 		graph->SetLineWidth(2);
 		graph->Draw(series_index == 0 ? "APL" : "PL same");
 		if (series_index == 0) {
-			graph->GetYaxis()->SetRangeUser(0.0, 105.0);
+			graph->GetYaxis()->SetRangeUser(0.0, 130.0);
 			label_time_axis(*graph->GetXaxis(), points, x);
 			graph->GetXaxis()->LabelsOption("v");
 			graph->GetYaxis()->SetTitleSize(0.045);
@@ -263,6 +423,66 @@ void draw_line_type_page(TCanvas& canvas, const std::string& pdf_path, const std
 	}
 	legend.Draw();
 	draw_header("001 line type fractions", "source: dump/logs/001/*.log");
+	canvas.Print(pdf_path.c_str());
+}
+
+void draw_reconstructed_event_count_page(TCanvas& canvas, const std::string& pdf_path, const std::vector<QcPoint>& points, const std::vector<double>& x)
+{
+	canvas.Clear();
+	canvas.SetLogy(0);
+	apply_qc_margins(canvas);
+
+	std::vector<double> reconstructed_events;
+	std::vector<double> run_info_events;
+	std::vector<double> run_info_triggers;
+	reconstructed_events.reserve(points.size());
+	run_info_events.reserve(points.size());
+	run_info_triggers.reserve(points.size());
+	double max_y = 0.0;
+	for (const auto& point : points) {
+		reconstructed_events.push_back(point.all_lpgbt_peak_events);
+		run_info_events.push_back(point.has_run_info_events ? point.run_info_events : 0.0);
+		run_info_triggers.push_back(point.has_run_info_triggers ? point.run_info_triggers : 0.0);
+		max_y = std::max(max_y, point.all_lpgbt_peak_events);
+		if (point.has_run_info_events) {
+			max_y = std::max(max_y, point.run_info_events);
+		}
+		if (point.has_run_info_triggers) {
+			max_y = std::max(max_y, point.run_info_triggers);
+		}
+	}
+	const auto y_max = max_y > 0.0 ? max_y * 1.4 : 1.0;
+
+	TGraph reconstructed_graph(static_cast<int>(x.size()), x.data(), reconstructed_events.data());
+	TGraph events_graph(static_cast<int>(x.size()), x.data(), run_info_events.data());
+	TGraph triggers_graph(static_cast<int>(x.size()), x.data(), run_info_triggers.data());
+	std::vector<TGraph*> graphs{&reconstructed_graph, &events_graph, &triggers_graph};
+	const std::vector<int> colors{kMagenta + 1, kGreen + 2, kBlue + 1};
+	const std::vector<int> markers{20, 21, 22};
+	for (std::size_t index = 0; index < graphs.size(); ++index) {
+		graphs[index]->SetTitle(";run time;event count");
+		graphs[index]->SetMarkerStyle(markers[index]);
+		graphs[index]->SetMarkerSize(1.0);
+		graphs[index]->SetMarkerColor(colors[index]);
+		graphs[index]->SetLineColor(colors[index]);
+		graphs[index]->SetLineWidth(2);
+		graphs[index]->Draw(index == 0 ? "APL" : "PL same");
+	}
+	reconstructed_graph.GetYaxis()->SetRangeUser(0.0, y_max);
+	label_time_axis(*reconstructed_graph.GetXaxis(), points, x);
+	reconstructed_graph.GetXaxis()->LabelsOption("v");
+	reconstructed_graph.GetYaxis()->SetTitleSize(0.045);
+	reconstructed_graph.GetYaxis()->SetLabelSize(0.04);
+
+	TLegend legend(0.62, 0.70, 0.90, 0.88);
+	legend.SetBorderSize(0);
+	legend.SetFillStyle(0);
+	legend.SetTextSize(0.030);
+	legend.AddEntry(&reconstructed_graph, "reconstructed events", "lp");
+	legend.AddEntry(&events_graph, "Run_Info number of events", "lp");
+	legend.AddEntry(&triggers_graph, "Run_Info number of triggers", "lp");
+	legend.Draw();
+	draw_header("All lpGBT sample peak event count", "source: dump/logs/001/*.log and config/Run_Info.csv");
 	canvas.Print(pdf_path.c_str());
 }
 
@@ -277,19 +497,16 @@ void write_qc_pdf(const std::vector<QcPoint>& points, const std::string& output_
 
 	std::vector<double> reconstructed_percent;
 	std::vector<double> crc_percent;
-	std::vector<double> peak_events;
 	for (const auto& point : points) {
 		reconstructed_percent.push_back(point.reconstructed_percent);
 		crc_percent.push_back(point.crc_percent);
-		peak_events.push_back(point.all_lpgbt_peak_events);
 	}
 	draw_single_series(canvas, output_path, points, x, reconstructed_percent,
 		"All lpGBT sample peak event fraction", "reconstructed event fraction [%]", kGreen + 2, true);
 	draw_single_series(canvas, output_path, points, x, crc_percent,
 		"40-line all-elink CRC OK fraction", "CRC OK fraction [%]", kBlue + 1, true);
 	draw_line_type_page(canvas, output_path, points, x);
-	draw_single_series(canvas, output_path, points, x, peak_events,
-		"All lpGBT sample peak event count", "reconstructed event count", kMagenta + 1, false);
+	draw_reconstructed_event_count_page(canvas, output_path, points, x);
 
 	canvas.Print((output_path + "]").c_str());
 }
@@ -305,6 +522,7 @@ int main(int argc, char** argv)
 		cxxopts::Options options(script_name, "Draw QC trends from 001_Rootifier logs");
 		options.add_options()
 			("l,log-dir", "Directory containing 001_Rootifier logs", cxxopts::value<std::string>()->default_value("dump/logs/001"))
+			("r,run-info", "Run information CSV with start/end times and event/trigger counts", cxxopts::value<std::string>()->default_value("config/Run_Info.csv"))
 			("o,output", "Output QC PDF", cxxopts::value<std::string>()->default_value("dump/004/qc_summary.pdf"))
 			("h,help", "Print usage");
 		const auto parsed = options.parse(argc, argv);
@@ -313,10 +531,14 @@ int main(int argc, char** argv)
 			return 0;
 		}
 		const auto log_dir = parsed["log-dir"].as<std::string>();
+		const auto run_info_path = parsed["run-info"].as<std::string>();
 		const auto output_path = parsed["output"].as<std::string>();
-		const auto points = load_qc_points(log_dir);
+		auto points = load_qc_points(log_dir);
+		const auto run_info_rows = load_run_info_rows(run_info_path);
+		attach_run_info_counts(points, run_info_rows);
 		write_qc_pdf(points, output_path);
 		spdlog::info("Read {} complete 001 log files from {}", points.size(), log_dir);
+		spdlog::info("Read {} usable run info rows from {}", run_info_rows.size(), run_info_path);
 		spdlog::info("Wrote QC PDF to {}", output_path);
 		return 0;
 	} catch (const std::exception& error) {

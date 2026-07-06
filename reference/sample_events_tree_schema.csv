@@ -1,0 +1,23 @@
+member_name,type,length,meaning
+FOCAL/FOCALHCAL.event_index,uint32_t,scalar,Sequential index of the selected reconstructed event in the FOCAL tree.
+FOCAL/FOCALHCAL.trigger_line,uint64_t,scalar,One-based raw 32-byte line number of the physical trigger that starts this event.
+FOCAL/FOCALHCAL.peak_cluster_length,uint32_t,scalar,Most frequent sample cluster length selected for this reconstruction; each required lpGBT must have a cluster with this length.
+FOCAL/FOCALHCAL.crc_required,bool,scalar,True when sample clusters were selected using only samples whose four elinks pass CRC.
+FOCAL/FOCALHCAL.n_lpgbt,uint32_t,scalar,Number of lpGBTs stored in this event entry.
+FOCAL/FOCALHCAL.lpgbt_id,std::vector<uint8_t>,n_lpgbt,lpGBT identifier for each lpGBT stored in this entry.
+FOCAL/FOCALHCAL.n_samples,std::vector<uint32_t>,n_lpgbt,Number of samples stored for each lpGBT; usually equal to peak_cluster_length.
+FOCAL/FOCALHCAL.payload_offset,std::vector<uint32_t>,n_lpgbt,Start index of each lpGBT payload block in tc/tp/val0/val1/val2.
+FOCAL/FOCALHCAL.payload_count,std::vector<uint32_t>,n_lpgbt,Number of payload values stored for each lpGBT; n_samples * 38 payload rows * 4 elinks.
+FOCAL/FOCALHCAL.sample_offset,std::vector<uint32_t>,n_lpgbt,Start index of each lpGBT sample block in sample_timestamp and in per-sample elink metadata.
+FOCAL/FOCALHCAL.sample_timestamp,std::vector<uint64_t>,sum(n_samples),First timestamp of each stored sample, ordered by lpGBT then sample.
+FOCAL/FOCALHCAL.first_l1a_fcmd_line_delta,std::vector<uint32_t>,n_lpgbt,Raw line offset from trigger_line to the first L1A FCMD data line for each lpGBT; uint32 max means not found.
+FOCAL/FOCALHCAL.l1a_fcmd_line_count,std::vector<uint32_t>,n_lpgbt,Number of L1A FCMD data lines found for each lpGBT within this event.
+FOCAL/FOCALHCAL.tc,std::vector<uint8_t>,sum(payload_count),TC bit payload values, ordered by lpGBT, sample, payload row, elink.
+FOCAL/FOCALHCAL.tp,std::vector<uint8_t>,sum(payload_count),TP bit payload values, ordered by lpGBT, sample, payload row, elink.
+FOCAL/FOCALHCAL.val0,std::vector<uint16_t>,sum(payload_count),ADC val0 payload values, ordered by lpGBT, sample, payload row, elink.
+FOCAL/FOCALHCAL.val1,std::vector<uint16_t>,sum(payload_count),ADC val1 payload values, ordered by lpGBT, sample, payload row, elink.
+FOCAL/FOCALHCAL.val2,std::vector<uint16_t>,sum(payload_count),ADC val2 payload values, ordered by lpGBT, sample, payload row, elink.
+FOCAL/FOCALHCAL.header_word,std::vector<uint32_t>,sum(n_samples) * 4,Raw sample header word for each sample and elink; zero if no header was decoded.
+FOCAL/FOCALHCAL.crc_word,std::vector<uint32_t>,sum(n_samples) * 4,CRC word read from each sample and elink.
+FOCAL/FOCALHCAL.computed_crc,std::vector<uint32_t>,sum(n_samples) * 4,CRC value recomputed by the decoder for each sample and elink.
+FOCAL/FOCALHCAL.crc_ok,std::vector<uint8_t>,sum(n_samples) * 4,CRC status for each sample and elink; 1 means pass and 0 means fail.

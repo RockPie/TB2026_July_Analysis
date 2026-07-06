@@ -55,6 +55,7 @@ struct ComparisonConfig {
 	double parameter_error = 0.0;
 	double parameter_error_percent = 0.0;
 	bool mu_linear_fit = false;
+	bool compare_to_other_tb = false;
 	std::string output_path;
 	std::vector<ConfigEntry> entries;
 };
@@ -165,6 +166,7 @@ ComparisonConfig load_config(const std::string& config_path)
 		config.parameter_error_percent = *parameter_error_percent;
 	}
 	config.mu_linear_fit = extract_json_bool_or_number(text, "mu_linear_fit");
+	config.compare_to_other_tb = extract_json_bool_or_number(text, "compare_to_other_tb");
 	if (const auto output_path = extract_json_string(text, "output")) {
 		config.output_path = *output_path;
 	}
@@ -612,9 +614,78 @@ double fit_resolution_percent(const FitSummary& fit) { return fit.ratio * 100.0;
 double fit_resolution_percent_stat(const FitSummary& fit) { return fit.ratio_stat * 100.0; }
 double fit_resolution_percent_sys(const FitSummary& fit) { return fit.ratio_sys * 100.0; }
 
+void draw_resolution_reference_comparison_page(const std::vector<InputHistogram>& inputs, const std::vector<std::optional<FitSummary>>& fits,
+	const std::string& output_path)
+{
+	std::vector<std::size_t> indices;
+	for (std::size_t index = 0; index < inputs.size() && index < fits.size(); ++index) {
+		if (fits[index].has_value()) {
+			indices.push_back(index);
+		}
+	}
+	if (indices.empty()) {
+		return;
+	}
+	std::sort(indices.begin(), indices.end(), [&](const auto left, const auto right) {
+		return inputs[left].parameter_value < inputs[right].parameter_value;
+	});
+
+	std::vector<double> x;
+	std::vector<double> y;
+	std::vector<double> x_error;
+	std::vector<double> y_error;
+	for (const auto index : indices) {
+		x.push_back(inputs[index].parameter_value);
+		x_error.push_back(inputs[index].parameter_error);
+		y.push_back(fit_resolution_percent(*fits[index]));
+		y_error.push_back(std::hypot(fit_resolution_percent_stat(*fits[index]), fit_resolution_percent_sys(*fits[index])));
+	}
+
+	TFile reference_file("reference/scan_0_analysis.root", "READ");
+	if (reference_file.IsZombie()) {
+		throw std::runtime_error("failed to open reference ROOT file: reference/scan_0_analysis.root");
+	}
+	auto* reference_canvas = dynamic_cast<TCanvas*>(reference_file.Get("canvas_resolution"));
+	if (reference_canvas == nullptr) {
+		throw std::runtime_error("reference ROOT file does not contain canvas_resolution: reference/scan_0_analysis.root");
+	}
+	auto comparison_canvas = std::unique_ptr<TCanvas>(dynamic_cast<TCanvas*>(reference_canvas->Clone("canvas_resolution_tb2026_comparison")));
+	if (!comparison_canvas) {
+		throw std::runtime_error("failed to clone reference canvas_resolution");
+	}
+	comparison_canvas->SetTitle("Resolution comparison with other test beams");
+	comparison_canvas->cd();
+
+	TGraphErrors tb2026_graph(static_cast<int>(x.size()), x.data(), y.data(), x_error.data(), y_error.data());
+	tb2026_graph.SetName("tb2026_resolution_graph");
+	tb2026_graph.SetTitle("TB2026 July");
+	tb2026_graph.SetMarkerStyle(20);
+	tb2026_graph.SetMarkerSize(1.2);
+	tb2026_graph.SetMarkerColor(kAzure + 2);
+	tb2026_graph.SetLineColor(kAzure + 2);
+	tb2026_graph.SetLineWidth(3);
+	tb2026_graph.Draw("P same");
+
+	if (auto* legend = dynamic_cast<TLegend*>(comparison_canvas->GetListOfPrimitives()->FindObject("TPave"))) {
+		legend->AddEntry(&tb2026_graph, "FoCal-H TB2026 July", "p");
+		legend->Draw();
+	} else {
+		TLegend fallback_legend(0.58, 0.68, 0.88, 0.86);
+		fallback_legend.SetBorderSize(0);
+		fallback_legend.SetFillStyle(0);
+		fallback_legend.SetTextSize(0.030);
+		fallback_legend.AddEntry(&tb2026_graph, "FoCal-H TB2026 July", "p");
+		fallback_legend.Draw();
+		comparison_canvas->Update();
+	}
+	comparison_canvas->Modified();
+	comparison_canvas->Update();
+	comparison_canvas->Print(output_path.c_str());
+}
+
 void draw_comparison(std::vector<InputHistogram>& inputs, const std::string& output_path, const std::string& title,
 	const std::string& parameter_name, const std::string& parameter_unit, const std::string& run_arguments, const std::string& run_time,
-	bool mu_linear_fit)
+	bool mu_linear_fit, bool compare_to_other_tb)
 {
 	if (inputs.empty()) {
 		throw std::runtime_error("no input histograms available");
@@ -715,6 +786,9 @@ void draw_comparison(std::vector<InputHistogram>& inputs, const std::string& out
 		draw_fit_trend_page(canvas, inputs, fits, output_path, "#mu", title + " #mu trend", parameter_name, parameter_unit, run_arguments, run_time, fit_mean, fit_mean_stat, fit_mean_sys, std::nullopt, mu_linear_fit);
 		draw_fit_trend_page(canvas, inputs, fits, output_path, "#sigma", title + " #sigma trend", parameter_name, parameter_unit, run_arguments, run_time, fit_sigma, fit_sigma_stat, fit_sigma_sys);
 		draw_fit_trend_page(canvas, inputs, fits, output_path, "resolution [%]", title + " resolution trend", parameter_name, parameter_unit, run_arguments, run_time, fit_resolution_percent, fit_resolution_percent_stat, fit_resolution_percent_sys, std::pair<double, double>{5.0, 15.0});
+		if (compare_to_other_tb) {
+			draw_resolution_reference_comparison_page(inputs, fits, output_path);
+		}
 	}
 	canvas.Print((output_path + "]").c_str());
 }
@@ -746,6 +820,7 @@ int main(int argc, char** argv)
 		std::string parameter_name;
 		std::string parameter_unit;
 		bool mu_linear_fit = false;
+		bool compare_to_other_tb = false;
 		std::vector<InputHistogram> inputs;
 		if (parsed.count("config")) {
 			const auto config = load_config(parsed["config"].as<std::string>());
@@ -756,6 +831,7 @@ int main(int argc, char** argv)
 			parameter_name = config.parameter_name;
 			parameter_unit = config.parameter_unit;
 			mu_linear_fit = config.mu_linear_fit;
+			compare_to_other_tb = config.compare_to_other_tb;
 			inputs = load_config_histograms(config);
 		}
 
@@ -772,7 +848,7 @@ int main(int argc, char** argv)
 		if (inputs.empty()) {
 			inputs = load_histograms(input_paths);
 		}
-		draw_comparison(inputs, output_path, title, parameter_name, parameter_unit, join_arguments(argc, argv), current_time_minute(), mu_linear_fit);
+		draw_comparison(inputs, output_path, title, parameter_name, parameter_unit, join_arguments(argc, argv), current_time_minute(), mu_linear_fit, compare_to_other_tb);
 
 		spdlog::info("Read {} ADC sum histogram ROOT files", inputs.size());
 		spdlog::info("Wrote ADC sum comparison PDF to {}", output_path);

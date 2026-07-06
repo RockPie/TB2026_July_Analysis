@@ -1854,30 +1854,42 @@ struct SampleEventTreeBranches {
     }
 };
 
+constexpr const char* kSampleEventTreeName = "FOCAL";
+constexpr const char* kSampleEventBranchPrefix = "FOCALHCAL.";
+
+std::string sample_event_branch_name(const char* member_name)
+{
+    return std::string(kSampleEventBranchPrefix) + member_name;
+}
+
 void create_sample_event_tree_branches(TTree& tree, SampleEventTreeBranches& branches)
 {
-    tree.Branch("event_index", &branches.event_index);
-    tree.Branch("trigger_line", &branches.trigger_line);
-    tree.Branch("peak_cluster_length", &branches.peak_cluster_length);
-    tree.Branch("crc_required", &branches.crc_required);
-    tree.Branch("n_lpgbt", &branches.n_lpgbt);
-    tree.Branch("lpgbt_id", &branches.lpgbt_id);
-    tree.Branch("n_samples", &branches.n_samples);
-    tree.Branch("payload_offset", &branches.payload_offset);
-    tree.Branch("payload_count", &branches.payload_count);
-    tree.Branch("sample_offset", &branches.sample_offset);
-    tree.Branch("sample_timestamp", &branches.sample_timestamp);
-    tree.Branch("first_l1a_fcmd_line_delta", &branches.first_l1a_fcmd_line_delta);
-    tree.Branch("l1a_fcmd_line_count", &branches.l1a_fcmd_line_count);
-    tree.Branch("tc", &branches.tc);
-    tree.Branch("tp", &branches.tp);
-    tree.Branch("val0", &branches.val0);
-    tree.Branch("val1", &branches.val1);
-    tree.Branch("val2", &branches.val2);
-    tree.Branch("header_word", &branches.header_word);
-    tree.Branch("crc_word", &branches.crc_word);
-    tree.Branch("computed_crc", &branches.computed_crc);
-    tree.Branch("crc_ok", &branches.crc_ok);
+    const auto branch = [&tree](const char* member_name, auto* address) {
+        const auto name = sample_event_branch_name(member_name);
+        tree.Branch(name.c_str(), address);
+    };
+    branch("event_index", &branches.event_index);
+    branch("trigger_line", &branches.trigger_line);
+    branch("peak_cluster_length", &branches.peak_cluster_length);
+    branch("crc_required", &branches.crc_required);
+    branch("n_lpgbt", &branches.n_lpgbt);
+    branch("lpgbt_id", &branches.lpgbt_id);
+    branch("n_samples", &branches.n_samples);
+    branch("payload_offset", &branches.payload_offset);
+    branch("payload_count", &branches.payload_count);
+    branch("sample_offset", &branches.sample_offset);
+    branch("sample_timestamp", &branches.sample_timestamp);
+    branch("first_l1a_fcmd_line_delta", &branches.first_l1a_fcmd_line_delta);
+    branch("l1a_fcmd_line_count", &branches.l1a_fcmd_line_count);
+    branch("tc", &branches.tc);
+    branch("tp", &branches.tp);
+    branch("val0", &branches.val0);
+    branch("val1", &branches.val1);
+    branch("val2", &branches.val2);
+    branch("header_word", &branches.header_word);
+    branch("crc_word", &branches.crc_word);
+    branch("computed_crc", &branches.computed_crc);
+    branch("crc_ok", &branches.crc_ok);
 }
 
 std::pair<std::uint32_t, std::uint32_t> l1a_fcmd_stats_for_gbt(const ReconEvent& event, std::uint8_t gbt_index)
@@ -1966,9 +1978,9 @@ std::size_t write_sample_events_root(const ReconSummary& summary, bool crc_only_
         throw std::runtime_error("failed to create sample ROOT file: " + summary.sample_root_path.string());
     }
     TNamed("Rootifier_input_file", summary.input_path.c_str()).Write();
-    TNamed("Rootifier_tree_layout", "payload index order: lpGBT-major, sample-major, row-major, elink-major").Write();
+    TNamed("Rootifier_tree_layout", "tree FOCAL; branch namespace FOCALHCAL; payload index order: lpGBT-major, sample-major, row-major, elink-major").Write();
 
-    TTree tree("sample_events", "Peak sample cluster events");
+    TTree tree(kSampleEventTreeName, "Peak sample cluster events");
     SampleEventTreeBranches branches;
     create_sample_event_tree_branches(tree, branches);
 
@@ -2008,9 +2020,9 @@ std::size_t write_sample_events_root(const ReconStatistics& statistics, bool crc
         throw std::runtime_error("failed to create sample ROOT file: " + statistics.sample_root_path.string());
     }
     TNamed("Rootifier_input_file", statistics.input_path.c_str()).Write();
-    TNamed("Rootifier_tree_layout", "payload index order: lpGBT-major, sample-major, row-major, elink-major").Write();
+    TNamed("Rootifier_tree_layout", "tree FOCAL; branch namespace FOCALHCAL; payload index order: lpGBT-major, sample-major, row-major, elink-major").Write();
 
-    TTree tree("sample_events", "Peak sample cluster events");
+    TTree tree(kSampleEventTreeName, "Peak sample cluster events");
     SampleEventTreeBranches branches;
     create_sample_event_tree_branches(tree, branches);
 
