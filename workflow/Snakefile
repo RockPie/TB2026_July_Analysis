@@ -226,8 +226,6 @@ rule compare_adc_sums_config:
         exe="build/bin/003_ADC_Sum_Comparison"
     output:
         marker="dump/003/config_runs/{config_stem}.done"
-    params:
-        pdf=output_for_config_stem
     log:
         "dump/logs/003/{config_stem}.log"
     resources:
@@ -236,7 +234,8 @@ rule compare_adc_sums_config:
         "mkdir -p $(dirname {log}) && "
         "mkdir -p $(dirname {output.marker}) && "
         "{input.exe} --config {input.config} > {log} 2>&1 && "
-        "test -s {params.pdf} && touch {output.marker}"
+        "pdf=$(python3 -c 'import json, sys; config=json.load(open(sys.argv[1])); print(config.get(\"output\", \"dump/003/\" + sys.argv[2] + \".pdf\"))' {input.config} {wildcards.config_stem}) && "
+        "test -s \"$pdf\" && touch {output.marker}"
 
 
 rule compare_adc_sums_temperature_config:

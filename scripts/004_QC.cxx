@@ -111,7 +111,21 @@ std::optional<double> parse_optional_count(std::string text)
 	if (text.empty() || text == "-") {
 		return std::nullopt;
 	}
+	if (!std::regex_match(text, std::regex(R"(\d+(?:\.\d+)?)"))) {
+		return std::nullopt;
+	}
 	return std::stod(text);
+}
+
+std::optional<int> parse_hour_from_time(std::string text)
+{
+	text = trim(text);
+	const std::regex time_pattern(R"((\d{1,2}):(\d{2}))");
+	std::smatch match;
+	if (!std::regex_match(text, match, time_pattern)) {
+		return std::nullopt;
+	}
+	return std::stoi(match[1].str());
 }
 
 std::time_t parse_run_timestamp(const std::string& run_name)
@@ -180,6 +194,8 @@ std::vector<RunInfoRow> load_run_info_rows(const std::filesystem::path& path)
 		}
 		const auto start = parse_run_info_timestamp(fields[0], fields[1]);
 		const auto end = parse_run_info_timestamp(fields[0], fields[2]);
+		const auto start_hour = parse_hour_from_time(fields[1]);
+		const auto end_hour = parse_hour_from_time(fields[2]);
 		if (!start.has_value() || !end.has_value()) {
 			continue;
 		}
@@ -187,7 +203,12 @@ std::vector<RunInfoRow> load_run_info_rows(const std::filesystem::path& path)
 		row.start_timestamp = *start;
 		row.end_timestamp = *end;
 		if (row.end_timestamp < row.start_timestamp) {
-			row.end_timestamp += 24 * 60 * 60;
+			if (start_hour.has_value() && end_hour.has_value() && *start_hour >= 18 && *end_hour <= 6) {
+				row.end_timestamp += 24 * 60 * 60;
+			} else {
+				spdlog::warn("Skipping Run_Info row with end time before start time: {}, {}, {}", fields[0], fields[1], fields[2]);
+				continue;
+			}
 		}
 		if (const auto events = parse_optional_count(fields[4])) {
 			row.events = *events;
@@ -278,7 +299,7 @@ std::vector<QcPoint> load_qc_points(const std::filesystem::path& log_dir)
 		throw std::runtime_error("log directory does not exist: " + log_dir.string());
 	}
 	for (const auto& entry : std::filesystem::directory_iterator(log_dir)) {
-		if (!entry.is_regular_file() || entry.path().extension() != ".log") {
+		if (!entry.is_regular_file() || entry.path().extension() != ".log" || entry.path().filename().string().rfind("._", 0) == 0) {
 			continue;
 		}
 		QcPoint point;
@@ -433,29 +454,34 @@ void draw_reconstructed_event_count_page(TCanvas& canvas, const std::string& pdf
 	apply_qc_margins(canvas);
 
 	std::vector<double> reconstructed_events;
+	std::vector<double> run_info_events_x;
+	std::vector<double> run_info_triggers_x;
 	std::vector<double> run_info_events;
 	std::vector<double> run_info_triggers;
 	reconstructed_events.reserve(points.size());
 	run_info_events.reserve(points.size());
 	run_info_triggers.reserve(points.size());
 	double max_y = 0.0;
-	for (const auto& point : points) {
+	for (std::size_t index = 0; index < points.size() && index < x.size(); ++index) {
+		const auto& point = points[index];
 		reconstructed_events.push_back(point.all_lpgbt_peak_events);
-		run_info_events.push_back(point.has_run_info_events ? point.run_info_events : 0.0);
-		run_info_triggers.push_back(point.has_run_info_triggers ? point.run_info_triggers : 0.0);
 		max_y = std::max(max_y, point.all_lpgbt_peak_events);
 		if (point.has_run_info_events) {
+			run_info_events_x.push_back(x[index]);
+			run_info_events.push_back(point.run_info_events);
 			max_y = std::max(max_y, point.run_info_events);
 		}
 		if (point.has_run_info_triggers) {
+			run_info_triggers_x.push_back(x[index]);
+			run_info_triggers.push_back(point.run_info_triggers);
 			max_y = std::max(max_y, point.run_info_triggers);
 		}
 	}
 	const auto y_max = max_y > 0.0 ? max_y * 1.4 : 1.0;
 
 	TGraph reconstructed_graph(static_cast<int>(x.size()), x.data(), reconstructed_events.data());
-	TGraph events_graph(static_cast<int>(x.size()), x.data(), run_info_events.data());
-	TGraph triggers_graph(static_cast<int>(x.size()), x.data(), run_info_triggers.data());
+	TGraph events_graph(static_cast<int>(run_info_events_x.size()), run_info_events_x.data(), run_info_events.data());
+	TGraph triggers_graph(static_cast<int>(run_info_triggers_x.size()), run_info_triggers_x.data(), run_info_triggers.data());
 	std::vector<TGraph*> graphs{&reconstructed_graph, &events_graph, &triggers_graph};
 	const std::vector<int> colors{kMagenta + 1, kGreen + 2, kBlue + 1};
 	const std::vector<int> markers{20, 21, 22};
@@ -479,8 +505,12 @@ void draw_reconstructed_event_count_page(TCanvas& canvas, const std::string& pdf
 	legend.SetFillStyle(0);
 	legend.SetTextSize(0.030);
 	legend.AddEntry(&reconstructed_graph, "reconstructed events", "lp");
-	legend.AddEntry(&events_graph, "Run_Info number of events", "lp");
-	legend.AddEntry(&triggers_graph, "Run_Info number of triggers", "lp");
+	if (!run_info_events.empty()) {
+		legend.AddEntry(&events_graph, "Run_Info number of events", "lp");
+	}
+	if (!run_info_triggers.empty()) {
+		legend.AddEntry(&triggers_graph, "Run_Info number of triggers", "lp");
+	}
 	legend.Draw();
 	draw_header("All lpGBT sample peak event count", "source: dump/logs/001/*.log and config/Run_Info.csv");
 	canvas.Print(pdf_path.c_str());

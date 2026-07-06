@@ -9,15 +9,15 @@
   "output": "dump/003/electron_energy_adc_sum_comparison_43V.pdf",
   "entries": [
     {
-      "raw": "data/run__2026_07_06__05_23_36__.raw",
+      "raw": "data/run__2026_07_05__23_36_59__.raw",
       "value": 100
     },
     {
-      "raw": "data/run__2026_07_06__05_23_59__.raw",
+      "raw": "data/run__2026_07_05__23_59_55__.raw",
       "value": 200
     },
     {
-      "raw": "data/run__2026_07_06__06_03_47__.raw",
+      "raw": "data/run__2026_07_06__03_47_25__.raw",
       "value": 250
     }
   ]
