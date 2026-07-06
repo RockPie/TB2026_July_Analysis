@@ -1,0 +1,593 @@
+General Information									Beam Configuration		Table position:		Focal-H settings:									Environment problems:			Other:	
+Date	Start time:	End time:	Run nr:	Environment ID:	Run purpose:	Number of Events:	Number of Triggers:	Root file naming:	Particle:	Energy:	Horizontal:	Vertical:	Trigger scheme:	Threshold:	Temperature:	Gain:	Bias:	ECAL in front (X = yes):	Run type:	Run number / configuration file:	Saved: 	Had to kill environment:	Environment died:	Time to restart	Quality Control:	Notes and EOR:
+03/07/2026	03:58	04:02	3253	33crXxfaqL8	Testing			FALSE	Electrons	100 GeV							43 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	Crashed during data taking
+03/07/2026	04:21	04:22	3254	33csJFFaXbA	Energy scan			FALSE	Electrons	100 GeV							43 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	Crashed during data taking
+03/07/2026	04:32	04:39	3255	33cskyfMTcg	Energy scan			FALSE	Electrons	100 GeV							43 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	Crashed at run stop
+03/07/2026	04:45	04:46	3256	33ctb4qiHsa	Energy scan			FALSE	Electrons	100 GeV							43 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	
+03/07/2026	04:52	04:53	3257	33cttHo4NBn	Energy scan			FALSE	Electrons	100 GeV							45 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	2-minute run
+03/07/2026	5:10	05:17	3258	33cuPJV1DZn	Testing			FALSE	Electrons	100 GeV							43 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Unknown	Crashed at closing 
+03/07/2026	05:39	05:51	3260	33cw7hwr9L8	Energy scan			FALSE	Electrons	100 GeV							43 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	moved to /mnt/focalh-nas-1/Data/
+03/07/2026	05:53	05:59	3261	33cwjS4NM3a	Energy scan			FALSE	Electrons	100 GeV							43 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	crashed during data taking, moved to /mnt/focalh-nas-1/Data/
+03/07/2026	06:05	06:14	3262	33cxL8jyLZJ	Energy scan			FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	Almost no data, moved to /mnt/focalh-nas-1/Data/
+03/07/2026	06:16	06:23	3263	33cxqkUVDJ4	Energy scan			FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	Almost no data, moved to /mnt/focalh-nas-1/Data/
+03/07/2026	06:26	06:31	3264	33cyHdM69BJ	Energy scan			FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	did not save data, showed fine on the monitor, moved to /mnt/focalh-nas-1/Data/
+03/07/2026	06:36	06:37	3265	33cyepzQToa	Energy scan			FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	did not save data, showed fine on the monitor
+03/07/2026	06:39	06:41	3266	33cyrw9vK3z	Energy scan			FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	did not save data, showed fine on the monitor
+03/07/2026	06:43	06:46	3267	33cz1yBaTPJ	Energy scan			FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Bad	did not save data, showed fine on the monitor
+03/07/2026	09:15	09:20	3268	33d6zYC5FRe	Testing	194910		FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Unknown	Environment in error, therefore killed, moved to /mnt/focalh-nas-1/Data/
+03/07/2026	09:40	09:43	3269	33d85tW1J7E	Testing	96660		FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Unknown	Probelms, might be corrupted, EOT didnt work readout shutdown
+03/07/2026	10:08	10:11	3270	 33d9PKhKowz	Testing	25020		FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Unknown	
+03/07/2026	10:15	10:17	3271	33d9j72r19v	Testing	6900		FALSE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Unknown	Was very short, just to check if raw file saving  was working
+03/07/2026	10:29	10:29	3272	33dA3DSZ9kG	Testing	116065		TRUE	Electrons	100 GeV							44 V	FALSE	FOCAL Physics (manual)	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	Has reco files, from now on running with reco. number of events unsure
+03/07/2026	11:10	11:12	3273	33dCEvyghgG	Testing	0		TRUE	Electrons	100 GeV							44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	11:17	11:17	3274	33dCXbhYPde	Testing	0		TRUE	Electrons	100 GeV							44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	11:22	11:22	3275	33dCkcvpXuv	Testing	0		TRUE	Electrons	100 GeV							44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	11:24	11:25	3276	33dCqfQ6rMS	Testing	87700		TRUE	Electrons	100 GeV							44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	11:34	11:37	3277	33dDJScxRNt	Testing	134900		TRUE	Electrons	100 GeV							44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	11:41	11:43	3278	33dDbHx4yHN	Testing	7900		TRUE	Electrons	100 GeV							44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	11:44	11:46	3279	33dDnaBp39E	Testing	71700		TRUE	Electrons	100 GeV							44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	12:18	12:22	3280	33dEx5LHR1n	Heatmap test	0		TRUE									44 V	FALSE			FALSE	FALSE	FALSE			1st heatmap scan. Wrong ECS settings, the rest of the heatmap runs are activated from downstairs
+03/07/2026	12:27	12:30	3281	33dFf1Q7Lig	Heatmap test	28300		TRUE									44 V	FALSE			FALSE	FALSE	FALSE			
+03/07/2026	12:48	12:48	3282	33dGWSESZ7A	Heatmap test	62600		TRUE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	13:00	13:02	3283	33dH23naWsW	Heatmap test	16000		TRUE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	13:06	13:08	3284	33dHXsB8k7W	Heatmap test	26700		TRUE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	13:12	13:13	3285	33dHknJ5r3N	Heatmap test	25800		TRUE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	13:18	13:19	3286	33dHzVdUZUg	Heatmap test	11200		TRUE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	13:23	13:24	3287	33dJCdJTgMS	Heatmap test	9900		TRUE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	13:54	13:59	3288	33dKgymqQyJ	Energy scan	263558		TRUE	Electrons	100 GeV							44 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			The run was stopped to troubleshoot BEAM physical issues
+03/07/2026	14:49	14:50	3289	33dNDh9ZCVS				FALSE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	18:07	18:10	3292	33dXDjDdXU8	Technical			FALSE										FALSE			FALSE	FALSE	FALSE			
+03/07/2026	18:19	18:38	3293	33dXX5BCCzp	Technical	416500		FALSE	Hadrons	300 GeV			L1 offset: 63, UL-delay: 21	ToT: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Bias changed from 43 V to 46 V, wide signal
+03/07/2026	18:40	18:45	3294	33dYiZCDwK2	Technical	117832		FALSE	Hadrons	300 GeV			L1 offset: 79, UL-delay: 21	ToT: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Trigger change, nada
+03/07/2026	18:47	19:08	3295	33dZ3ByCNh2	Technical	433203		FALSE	Hadrons	300 GeV			L1 offset: 95, UL-delay: 21	ToT: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Data stopped uploading, killed because it took long to stop, nada
+03/07/2026	19:09	19:18	3296	33da4c9QwF2	Technical	174829		FALSE	Hadrons	300 GeV			L1 offset: 61, UL-delay: 21	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Killed because it took long to stop, nada
+03/07/2026	19:18	19:19	3297	33daVg1cdt8	Technical	8699		FALSE	Hadrons	300 GeV			L1 offset: 61, UL-delay: 21	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Started run to early, so stopped immediatly, wide signal
+03/07/2026	19:20	19:22	3298	33daZKoz2wN	Technical	64764		FALSE	Hadrons	300 GeV			L1 offset: 45, UL-delay: 21	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Changing offset, nada
+03/07/2026	19:24	19:27	3299	33dajjbBYWY	Technical	117699		FALSE	Hadrons	300 GeV			L1 offset: 29, UL-delay: 21	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Changing offset, nada
+03/07/2026	19:29	19:33	3300	33daxEdaJya	Technical	188881		FALSE	Hadrons	300 GeV			L1 offset: 13, UL-delay: 21	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Payload decreased to zero RDH-size too small error, change in UL-delay
+03/07/2026	19:42	19:45	3301	33dbb3j614	Technical	83041		FALSE	Hadrons	300 GeV			L1 offset: 8, UL-delay: 12	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Fatal error; readout 
+03/07/2026	19:47	19:52	3302	33dbp3DYzBW	Technical	162623		FALSE	Hadrons	300 GeV			L1 offset: 8, UL-delay: 12	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Fatal error, restarted
+03/07/2026	19:58	20:05	3303	33dcHfG4uTa	Technical	164945		FALSE	Hadrons	300 GeV			L1 offset: 13, UL-delay: 12	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Data stopped reading at the end of the measurement
+03/07/2026	20:05	20:08	3304	33dcHfG4uTa	Technical	73730		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Change in deadtime
+03/07/2026	20:09	20:11	3305	33dcnFtwQf6	Technical	61680		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	46 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Change in bias
+03/07/2026	20:13	20:19	3306	33dcz4gKgH2	Technical	212249		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	43 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Change in bias
+03/07/2026	20:21	20:24	3307	33ddMaRHERS	Technical	87012		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	47 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Needed a secret Tommaso trick
+03/07/2026	20:26	20:46	3308	33ddaTss92t	Technical	615940		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	47 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Data stopped
+03/07/2026	21:04	21:07	3309	33dfCMrUw4p	Technical	52844		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	47 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Trigger scintillator bias decreased by 2.5 V
+03/07/2026	21:14	21:17	3310	33dfneFfgrx	Technical	28732		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	47 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Config from April 2026 Test Beam
+03/07/2026	21:18	21:21	3311	33dfx4EqCGU	Technical	28759		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 2	Tot: 650		3	47 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			UL-delay change
+03/07/2026	21:24	21:29	3312	33dg6z2kMqe	Technical	58233		FALSE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	47 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Change to electrons, because "hadrons will be hard"
+03/07/2026	21:34	21:42	3313	33dgeACWRcQ	Technical	427440		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	47 V	FALSE		rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Data stopped reading at the end of the measurement, increasing ToA threshold
+03/07/2026	21:44	21:56	3314	33dh7bwZLKW	Technical	768144		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Technical	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			Stopped collecting data, had to kill 
+03/07/2026	22:00	22:01	3315	33dhncP7LNY	Technical	85492		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Technical	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	22:02	22:05	3316	33dhwtbac7E	Technical	295149		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Technical	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	22:12	22:13	3317	33diNhChhWU	Energy scan	131172		TRUE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	22:31	22:35	3318	33djGSvRZzc	Energy scan	6519		TRUE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			1 ms of deadtime6519
+03/07/2026	23:03	23:05	3319	33dkjd3UR4Q	Energy scan			TRUE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	23:11	23:14	3320	33dm7LQzLRi	Technical			FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Technical	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	23:15	23:16	3321	33dmGgx1Wng	Technical	60 000		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Technical	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	23:17	23:18	3322	33dmNDHGLQ4	Energy scan	109185		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	23:25	23:26	3323	33dmimFJue4	Energy scan	70547		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	23:39	23:44	3324	33dnPhg6rSx	Technical	347599		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	23:51	23:53	3325	33dnv6NQwtG	Energy scan	77071		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+03/07/2026	23:54	23:57	3326	33do2qcFREC	Energy scan	109049		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	00:06	00:09	3327	33doc6rppvQ	Technical			FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	00:10	00:13	3328	33donPy5Zwa	Energy scan			FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	00:14	00:14	3329	33donPy5Zwa	Technical			FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	00:18	00:20	3330	33dp8q7HSwW	Technical	170164		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	00:27	00:41	3331	33dpYf55yrc	Energy scan	669504		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	FALSE			0 data after 6 min
+04/07/2026	00:44	00:45	3332	33dqMiTmmxx	Technical	59904		FALSE	Electrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	TRUE			
+04/07/2026	01:00	01:02	3333	33dr3JsdKYG	Energy scan	100000		FALSE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	01:04	01:06	3334	33drFyT1U7v	Energy scan	105886		FALSE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	01:10	01:14	3335	33drVceEBuN	Energy scan	125199		FALSE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	42 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	01:27	01:30	3337	33dsJK2GANG	Energy scan	183905		FALSE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	01:32	01:35	3338	33dsVVwdocQ	Energy scan	180062		FALSE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	01:39	01:43	3339	33dsq4nC41i	Energy scan			FALSE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+04/07/2026	01:58	02:11	3340	33dthmcVREU	Energy scan	700000		FALSE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	TRUE	4 min		0 data after 7 minutes, died when stopping run
+04/07/2026	02:12	02:17	3341	33duM1DmEaG	Energy scan	200000		TRUE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died mid run, had to kill env
+04/07/2026	04:31	04:39	3349	33e1hfwgkjv	Energy scan	310061		TRUE	Hadrons	100 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	TRUE	6 min		0 data after 3 minutes,  died when stopping run
+04/07/2026	04:42	04:47	3350	33e266a2gwn	Energy scan			TRUE	Hadrons	200 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	3 min		Died during run after 3 minutes
+04/07/2026	04:49	04:56	3351	33e2VQ1g1PA	Energy scan	238614		TRUE	Hadrons	200 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	FALSE	4 min		0 data after 2 minutes
+04/07/2026	04:57	05:06	3352	33e2sGgqRKz	Energy scan	504495		TRUE	Hadrons	200 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE	5 min	Good	
+04/07/2026	05:11	05:17	3353	33e3NN73yqn	Energy scan	77025		TRUE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	2 min		Died during run after approx 5 minutes
+04/07/2026	05:18	05:23	3354	33e3qN4DPCx	Energy scan	44097		TRUE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	2.5 min		Died during run after 3 minutes
+04/07/2026	05:24	05:34	3355	33e45XpZJ2p	Energy scan	116491		TRUE	Hadrons	300 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	FALSE	4.5 min		0 data after 6 min. ADC-ToT correlation looks abnormal, Pedestals also not looking good, but not fatally bad
+04/07/2026	05:36	05:42	3356	33e4cCmmWhS	Energy scan	26999		TRUE	Hadrons	60 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	3 min		Died during run after 4 min
+04/07/2026	05:43	05:46	3357	33e4xeunugp	Energy scan	14000		TRUE	Hadrons	60 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	1 min		Died during run after 2 min
+04/07/2026	05:47	05:52	3358	33e599xPsK2	Energy scan	14000		TRUE	Hadrons	60 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	2 min		Died during run after 4 min
+04/07/2026	05:53	06:01	3359	33e5RFUReCU	Energy scan	33912		TRUE	Hadrons	60 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	FALSE	4 min		0 data after 5 min
+04/07/2026	06:02	06:10	3360	33e5qKkTEvg	Energy scan	151252		TRUE	Hadrons	80 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	FALSE	4 min		0 data after 4 min 
+04/07/2026	06:11	06:16	3361	33e6DoYde5J	Energy scan	160174		TRUE	Hadrons	80 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	2 min		Died during run after 5 minutes
+04/07/2026	06:18	06:26	3362	33e6XzcAXxQ	Energy scan	253042		TRUE	Hadrons	80 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	3 min		Died during run after 7 minutes, pedestal looked slightly off
+04/07/2026	06:28	06:31	3363	33e6y6N5KT2	Energy scan	533355		TRUE	Hadrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE	4.5 min	Good	ConsumerFMQ : error 1088 appear often, pedestal looks suspicious
+04/07/2026	06:35	06:39	3364	33e7GtkbCNG	Energy scan	143602		TRUE	Hadrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	1 min		Died during run after 3 minutes
+04/07/2026	06:40	06:44	3365	33e7a3pb9r4	Energy scan	58426		TRUE	Hadrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	2.5 min		Died during run after 2 min
+04/07/2026	06:45	06:55	3366	33e7mGFS4iY	Energy scan	251543		TRUE	Hadrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	4.5 min		ADC ToT correlation looking strange, pedestal also looking slightly off.
+04/07/2026	06:56	07:12	3367	33e8JV6rq5W	Energy scan	510951		TRUE	Hadrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	6.5 min	Good	Died during run after 14 minutes, pedestals look slightly off,         ConsumerFMQ : error 1130 appeared often
+04/07/2026	07:17	07:20	3368	33e9BvKDfXz	Energy scan	650000		TRUE	Hadrons	350 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	FALSE	FALSE	8 min	Good	
+04/07/2026	07:21	07:33	3369	33e9bkJWBjS	Energy scan	133000		TRUE	Electrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	1 min		Died during run after 5 min
+04/07/2026	07:34	07:36	3370	33eA2xhskVi	Energy scan	31436		TRUE	Electrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	1 min.		Died during run after 1 min
+04/07/2026	07:37	07:47	3371	33eAAbxh2KN	Energy scan	202007		TRUE	Electrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	3.5 min.		pedestals look slightly off, died duing run after 7 min.
+04/07/2026	07:50	07:54	3372	33eAezp7Ebv	Energy scan	67576		TRUE	Electrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	2 min.		Died during run after 2.5 min
+04/07/2026	07:55	08:04	3373	33eAydHHpbn	Energy scan	159141		TRUE	Electrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	4.5 min.		0 data after 6 min
+04/07/2026	08:06	08:09	3374	33eBTJEpL1A	Energy scan	61606		TRUE	Electrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	1.5 min.		Died during run after 2.5 min
+04/07/2026	08:10	08:16	3375	33eBeoSD7jr	Energy scan	109176		TRUE	Electrons	250 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	7 min.		Died during run after 4 min
+04/07/2026	08:21	08:26	3376	33eBz3mQL7W	Energy scan	193970		TRUE	Hadrons	200 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE	2 min.		Died during run after 3 min, ConsumerFMQ : error 1130
+04/07/2026	08:26	08:33	3377	33eCQauav28	Energy scan	442433		TRUE	Hadrons	200 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 	rf = 12 cf = 10 cfc = 6 cc = 3 cd = 0	FALSE	TRUE	TRUE		Bad	Died duing the run after 6.5 min., ConsumerFMQ : error 1130 and ConsumerFMQ : error 1088
+04/07/2026	10:39	10:39	3378	33eJD8Xkyoz	Technical			FALSE	Hadrons	200 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 		FALSE	TRUE	TRUE		Bad	Died after 0 sek. -> Missing trigger information
+04/07/2026	10:41	10:41	3379	33eJXHhanqa	Technical			FALSE					L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 		FALSE	TRUE	TRUE		Bad	Died after 0 sek. -> Missing trigger information
+04/07/2026	10:42	10:42	3380	33eJb9feJ2x	Technical			FALSE					L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE	Physics 		FALSE	TRUE	TRUE		Bad	Died after 0 sek. -> Missing trigger information
+04/07/2026	10:45	10:45	3381	33eJidoBzFW	Technical			FALSE					L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE			FALSE	TRUE	TRUE		Bad	Died after 0 sek. -> Missing trigger information
+04/07/2026	11:04	11:04	3382	33eKc5uSPa4	Technical			FALSE					L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE			FALSE	TRUE	TRUE		Bad	Died after 0 sek. -> Missing trigger information
+04/07/2026	11:08	11:09	3383	33eKnXhkvQU	Energy scan			FALSE					L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE			FALSE	TRUE	TRUE		Bad	Died after 0 sek. -> Missing trigger information
+04/07/2026	11:30	11:33	3384	33eLoCKiakt	Testing	290127		FALSE	Hadrons	150 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE			FALSE	FALSE	FALSE		Good	ConsumerFMQ : error 1088
+04/07/2026	12:52	12:55	3385	33eLoCKiakt	Testing			FALSE	Hadrons	80 GeV			L1 offset: 42, UL-delay: 0	Tot: 650		3	45 V	FALSE			FALSE	FALSE	FALSE		Bad	
+04/07/2026	12:55	12:56	3386	33eLoCKiakt	Testing			FALSE	Hadrons	80 GeV								FALSE			FALSE	FALSE	FALSE		Bad	
+04/07/2026	13:01	13:01	3387	33eLoCKiakt	Testing			FALSE	Hadrons	150 GeV								FALSE			FALSE	FALSE	FALSE		Bad	Died after 0 sek. -> Missing trigger information
+04/07/2026	13:03	13:05	3388	33eR1ebLAxC	Testing			FALSE	Hadrons	150 GeV								FALSE			FALSE	FALSE	FALSE		Bad	Died after 2 sek. -> task 'FOCALRawDecoderSpec_t9' terminated with error: exit status 1 taskId="33eR1zDvzrx"
+04/07/2026	13:27	13:29	3389	33eS6D82PvC	Testing			FALSE	Hadrons	150 GeV								FALSE			FALSE	FALSE	FALSE		Bad	Died after 2 sek. -> task 'FOCALRawDecoderSpec_t9' terminated with error: exit status 1 taskId="33eR1zDvzrx"
+04/07/2026	13:30	13:30	3390	33eS6D82PvC	Testing			FALSE	Hadrons	150 GeV								FALSE			FALSE	FALSE	FALSE		Bad	Died after 2 sek. -> task 'FOCALRawDecoderSpec_t9' terminated with error: exit status 1 taskId="33eR1zDvzrx"
+			3391					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3392					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3393					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3394					FALSE										FALSE			FALSE	FALSE	FALSE			ABOVE HERE I DON'T THINK AMOUNT OF EVENTS IS CORRECT. IT IS MORE LIKELY AMOUNT OF TRIGGERS!
+			3395					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3396					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3397					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3398					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3399					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3400					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3401					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3402					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3403					FALSE										FALSE			FALSE	FALSE	FALSE			
+			3404					FALSE										FALSE			FALSE	FALSE	FALSE			
+04/07/2026	16:38	16:39	3405	33eaocPS75N	Testing			TRUE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE	0	Bad	Run 20 min to test if everything works now: not possible crashed after 1 minute
+04/07/2026	16:41	16:42	3406	33eavzS8kDr	Testing			TRUE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE		Bad	Stopped the run because the QC was not loading 
+04/07/2026	16:44	16:46	3407	33eb6zuFYnY	Testing			TRUE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE	0	Bad	Died
+04/07/2026	16:50	16:54	3408	33ebN8TzRoA	Testing	41716		TRUE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE		Unknown	Died, First task in critical error
+04/07/2026	17:04	17:11	3409	33ec1QgUyt8	Testing	39300		TRUE	Hadrons	300 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE		Unknown	Died
+04/07/2026	17:13	17:17	3410	33ecSBLw1sA	Testing			TRUE	Hadrons	300 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE		Unknown	Died
+04/07/2026	17:21	17:23	3411	33ecnjD3dyn	Testing	13141		TRUE	Hadrons	300 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE		Unknown	NO QC PLOTS: Try running without QC plots, QC not possible; Crashed (problem is not QC)
+04/07/2026	17:34	17:35	3412	33edNidpcex	Testing			FALSE	NO BEAM					Tot: 300				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG RUN with fake trigger (1)
+04/07/2026	17:36	17:38	3413	33edVjbRUJx	Testing		1000000	FALSE	NO BEAM					Tot: 300				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG RUN with fake trigger (2)
+04/07/2026	17:41	17:42	3414	33edgKg5zT6	Testing		600000	FALSE	NO BEAM					Tot: 300				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG RUN with fake trigger (very high trig): readout rate went down (because it gets saved in home folder)
+04/07/2026	18:22	18:24	3415	33efYnNNaNY	Testing			FALSE	NO BEAM					SHIHAI1				FALSE	Debug	SHIHAI1	FALSE	FALSE	FALSE			fake trigger run, rate 0.5 kHz, shihai is testing chips
+04/07/2026	18:29	18:32	3416	33eftv5UuBJ	Testing			FALSE	NO BEAM					SHIHAI2				FALSE	Debug	SHIHAI2	FALSE	FALSE	FALSE			fake trigger run, rate 0.5 kHz , shihai is testing chips
+04/07/2026	18:34	18:36	3417	33eg6nijJMJ	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			Tommaso debug test run to check stability of run with 1kHz , get to 50k trig count
+04/07/2026	18:37	18:38	3418	33egEf94CJY	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			Tommaso debug test run to check stability of run with 1kHz (now with reco root files as well), get to 100k trig count
+04/07/2026	18:48	18:49	3419	33eghDAv9v4	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			Shihai fake trig debug
+04/07/2026	18:50	18:52	3420	33egsV13Wqz	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			Ian fake trig debug
+04/07/2026	18:54	18:55		33eh1gfj5zt	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	TRUE	TRUE			Environment died before start of run
+04/07/2026	18:55	18:55		33eh5t4XBNL	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	TRUE	TRUE			First task into critical error: playing with memory usage, environment died before start of run
+04/07/2026	18:56	18:59	3421	33eh8dpRnfW	Testing		125754	FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG run again for memory usage
+04/07/2026	19:00	19:02	3422	33ehHMixiCL	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG
+04/07/2026	19:05	19:07	3423	33ehWTtNTsA	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG 
+04/07/2026	19:08	19:08		33ehgQYb7SU	Testing			FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	TRUE	TRUE			Too high memory usage, environment crashed before run was created
+04/07/2026	19:12	19:14	3424	33ehr9LuWFn	Testing		100000	FALSE	NO BEAM					DEBUG				FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			debug for memory usage
+04/07/2026	19:27	19:29	3425	33eiX4cz1PA	Energy scan			FALSE	Hadrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Died :( something wrong with the trigger setup
+04/07/2026	19:31	19:40	3426	33eihBc9eon	Energy scan			FALSE	Hadrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Something wrong wth usage of memory? There was a limit set at 1GB
+04/07/2026	19:49	19:54	3427	33ejXa7g68U	Energy scan	39800		FALSE	Hadrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Died 
+04/07/2026	19:57	20:02	3428	33ejtgeUtPn	Energy scan	27870		FALSE	Hadrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			Reached 8.5 GB, then readout stopped.
+04/07/2026	21:31	21:33	3429	33epB3oAZun	Testing			FALSE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	FALSE	4 minutes		Had fatal errors and was sending dying commands so environment was killed.
+04/07/2026	21:38	21:40	3430	33epTdqiXJ4	Rate scan	45840	210601	TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			Attempt at perfirming rate scan, crashed First Task in Critical Error
+04/07/2026	21:43	21:47	3431	33epjcnjUkt	Rate scan	83770	411038	TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE		Good	Rate scan: \sim 15000 trig / spill (approx 20k events pr. minute)
+04/07/2026	21:58	22:02	3432	33eqRr2wBR6	Rate scan	40600	185367	TRUE	Electrons	150 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	TRUE		Unknown	Rate scan: \sim 13500 trig / spill (approx 80k events pr. minute, VERY WEIRD, probably bug). Run crashed.
+04/07/2026	22:10	22:10	3433	33eqgGbfvQc	Rate scan			TRUE	Electrons	150 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			
+04/07/2026	22:11	22:11	3434	33er2WbVCYC	Rate scan			TRUE	Electrons	150 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			
+04/07/2026	22:14	22:17	3435	33er7uYHbhv	Rate scan	41330	53629	TRUE	Electrons	150 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE		Good	Rate scan: \sim 13500 trig / spill (approx 16k events pr. minute).
+04/07/2026	22:21	22:26	3436	33erU5RQsTz	Rate scan	40980	100419	TRUE	Electrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE		Good	Rate scan: \sim  5000 trig / spill (approx 13k events pr. minute).
+04/07/2026	22:31	22:34	3437	33eruQLqH6C	Rate scan	20380	47201	TRUE	Electrons	250 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	TRUE		Unknown	Rate scan: \sim 4500  trig / spill (approx 9k events pr. minute). Crashed.
+04/07/2026	22:36	22:39	3438	33es8ikP6kC	Rate scan	25420	59246	TRUE	Electrons	250 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	TRUE		Unknown	Rate scan: \sim 4500  trig / spill (approx events 10k pr. minute). Crashed :)
+04/07/2026	22:45	22:50	3439	33esYbn69Ug	Rate scan	35640	85316	TRUE	Electrons	250 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			Rate scan: \sim 4500  trig / spill (approx events 6.8k pr. minute). 
+04/07/2026	23:01	23:05	3440	33etH89PMnk	Testing	57780		TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+04/07/2026	23:07	23:09	3441	33etYKkNHKr	Testing	27590		TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+04/07/2026	23:11	23:25	3442	33ethcPEPW	Testing	27220	505438	TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	FALSE			
+04/07/2026	23:30	23:35	3443	33eucow2cPE	Bias scan	22860	135928	TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	FALSE		Unknown	Stopped reading data
+04/07/2026	23:39	23:43	3444	33ev1hdPS2G	Bias scan	30420	106434	TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE		Unknown	Crashed when reading data and crashed when saving
+04/07/2026	23:46	23:52	3445	33evKAtxa9a	Bias scan	60950	189359	TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE		Unknown	Crashed when reading data
+04/07/2026	23:54	23:59	3446	33eviEY2aQk	Bias scan	31100	138174	TRUE	Electrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE		Unknown	Stopped reading data, took long time to stop
+05/07/2026	00:04	00:12	3447	33ew83gPWJp	Bias scan	74400	254714	TRUE	Electrons	100 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	FALSE		Unknown	Crashed when reading data
+05/07/2026	00:17	00:20	3448	33ewfhqY1fA	Bias scan	26570	74654	TRUE	Electrons	100 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			Stopped loading in events
+05/07/2026	00:22	00:28	3449	33ewyJKBfFi	Bias scan	55280	183579	TRUE	Electrons	100 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+05/07/2026	00:30	00:35	3450	33exKiLA5rU	Bias scan	46080	172103	TRUE	Electrons	100 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	TRUE			Run crashed
+05/07/2026	00:37	00:40	3451	33exfF87KiC	Bias scan	39980	112155	TRUE	Electrons	100 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Run crashed
+05/07/2026	00:43	00:48	3452	33exxC8M8BE	Bias scan	28920	146349	TRUE	Electrons	100 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	00:53	00:56	3453	33eyNDEYFxg	Bias scan	40620	106458	TRUE	Electrons	100 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+05/07/2026	01:03	01:09	3454	33eypZmFnm2	Bias scan	59800	313248	TRUE	Electrons	20 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	01:12	01:18	3455	33ezHAtWFUG	Bias scan	65620	290339	TRUE	Electrons	20 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	FALSE			"Hi there, this is Nina - please clarify what you mean by ""stopped reading data, died after stopped"". Did the readout rate drop to 0? If so, why did you not stop the run once it dropped? Or did the run itself crash? Please clarify, thank you
+Filip here: At first it dropped readout rate to 0, so we stop the run, but after we stop it it crashes before is actually ends the run - seems to happen quite often."
+05/07/2026	01:32	01:27	3456	33ezj4hxinG	Bias scan	42290	217439	TRUE	Electrons	20 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	01:33	01:39	3457	33f18rPpMcg	Bias scan	55260	307840	TRUE	Electrons	20 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Crashed after we stopped the run
+05/07/2026	01:44	01:45	3458	33f1gGyjSKv	Bias scan	21280	51284	TRUE	Electrons	20 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+05/07/2026	01:51	01:56	3459	33f1ws6qT8p	Bias scan	56980	223050	TRUE	Hadrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Crashed during data taking
+05/07/2026	01:59	02:00	3460	33f2P82ynoE	Bias scan	20320	39016	TRUE	Hadrons	100 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+05/07/2026	02:01	02:10	3461	33f2V9p8M3r	Bias scan	43230	255616	TRUE	Hadrons	100 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+05/07/2026	02:11	02:17	3462	33f2wSnmbgG	Bias scan	76050	257965	TRUE	Hadrons	100 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+05/07/2026	02:21	02:27	3463	33f3KPqStp4	Bias scan	37760	142543	TRUE	Hadrons	200 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Crashed during data taking
+05/07/2026	02:27	02:33	3464	33f3fxeR4MS	Bias scan	34040	120290	TRUE	Hadrons	200 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			
+05/07/2026	02:34	02:42	3465	33f3yjomXk8	Bias scan	56950	226689	TRUE	Hadrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			Many of the beam focussing magnets suddenly turned red, so the run was stopped and the beam file reloaded
+05/07/2026	03:23	03:25	3466	33f5t3XUGbN	Bias scan	20690	64039	TRUE	Hadrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	TRUE	TRUE			Crashed during data taking
+05/07/2026	03:25	03:30	3467	33f6Th4pt2G	Bias scan	21600	31508	TRUE	Hadrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0 	FALSE	FALSE	FALSE			We stopped data collection because SPS stopped
+05/07/2026	03:34	03:40	3468	33f6jF3PwAC	Bias scan	16870	79762	TRUE	Hadrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Crashed during data taking
+05/07/2026	03:41	03:45	3469	33f72QU9iap	Bias scan	19900	26251	TRUE	Hadrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			We stopped data collection because SPS stopped
+05/07/2026	04:45	04:57	3470	33f8RPKpQgt	Technical	231010	346506	TRUE	Hadrons	200 GeV				Tot: 300			45 V	TRUE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			We tried to take a technical run for 15 min. Data collection stopped after ~12 min, after that we manually stopped the run, but it got a fatal error before the stop could complete leading to a necessity of having to kill the run eventually
+05/07/2026	05:06	05:09	3471	33fAkcDf4Mz	Bias scan	35710	95263	TRUE	Hadrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+05/07/2026	05:11	05:15	3472	33fB8e263uv	Bias scan	31570	148377	TRUE	Hadrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	05:21	05:26	3473	33fBam5W7CY	Bias scan	55590	167765	TRUE	Hadrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+05/07/2026	05:41	05:46	3474	33fBxxcnP7r	Bias scan	68760	281257	TRUE	Hadrons	350 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	05:55	05:59	3475	33fDAJKz8qz	Bias scan	31450	223157	TRUE	Hadrons	350 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	06:02	06:03	3476	33fDSTht3HW	Bias scan	13750	59916	TRUE	Hadrons	350 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+05/07/2026	06:04	06:09	3477	33fDZpM3Mw2	Bias scan	45690	202101	TRUE	Hadrons	350 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	06:11	06:12	3478	33fDsNj82RJ	Bias scan	12670	60224	TRUE	Hadrons	350 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			
+05/07/2026	06:15	06:18	3479	33fE3HeXWqA	Energy scan	33250	133424	TRUE	Hadrons	350 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	06:19	06:26	3480	33fEFz1go8x	Energy scan	51710	263302	TRUE	Hadrons	350 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	06:27	06:36	3481	33fEc7N3Hzt	Energy scan	44840	335534	TRUE	Hadrons	350 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	06:37	06:44	3482	33fF3m6cb2t	Energy scan	57670	335401	TRUE	Hadrons	350 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data, died after stopped
+05/07/2026	06:45	06:55	3483	33fFRLVaNUc	Energy scan	106960	574549	TRUE	Hadrons	350 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Data readout ok, but had to kill after long wait for stopping the run
+05/07/2026	07:01	07:03	3484	33fG9cAQhkQ	Energy scan	35400	133581	TRUE	Hadrons	350 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died during data readout
+05/07/2026	07:19	7:26	3485	33fH17DMsdn	Energy scan	72060	199664	TRUE	Hadrons	350 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died during data readout
+05/07/2026	07:32	07:38	3486	33fHZ2xrptU	Energy scan	28940	200471	TRUE	Hadrons	350 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			We stopped data - sufficient numbers triggers for 45V in the run before. Also crashed after clicking stop
+05/07/2026	07:40	07:51	3487	33fHwuwhzdr	Energy scan	137220	636079	TRUE	Hadrons	350 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died during data readout. After stopping: ECS transition: GO_ERROR -> kill
+05/07/2026	07:54	07:59	3488	33fJZzdgECt	Energy scan	36920	234638	TRUE	Hadrons	350 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died during data readout. After stopping: ECS transition: GO_ERROR -> kill
+05/07/2026	08:03	08:06	3489	33fJzBWCde4	Energy scan	40080	201954	TRUE	Hadrons	350 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Stopped reading data
+05/07/2026	08:18	08:26	3490	33fKhFBpsKi	Energy scan	74930	214881	TRUE	Electrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Crashed when reading data
+05/07/2026	08:29	08:29	3491	33fLC5C4tua	Energy scan			TRUE	Electrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died before even started
+05/07/2026	08:31	08:35	3492	33fLGT6Bu6k	Energy scan	24580	106982	TRUE	Electrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died during data readout
+05/07/2026	08:42	08:47	3493	33fLo3VWKbz	Energy scan	31950	119846	TRUE	Electrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Died during data readout
+05/07/2026	08:52	08:58	3494	33fMD4Huc1J	Energy scan	42960	164189	TRUE	Electrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Crashed during data taking
+05/07/2026	09:02	09:07	3495	33fMgQ43Qmi	Energy scan	39170	133561	TRUE	Electrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			We stopped data - sufficient numbers triggers for this configuration
+05/07/2026	09:11	09:13	3496	33fN8XKKNK6	Energy scan	23950		TRUE	Electrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Stopped for changing 43V -> 45V
+05/07/2026	09:16	09:19	3497	33fNLsQpU9S	Energy scan	23070	755271	TRUE	Electrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Crashed when reading data
+05/07/2026	09:22	09:27	3498	33fNcEPtr76	Energy scan	43120	132550	TRUE	Electrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Crashed when reading data
+05/07/2026	09:31	09:35	3499	33fNyc1QLdr	Energy scan	16370	624665	TRUE	Electrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Crashed when reading data
+05/07/2026	09:39	10:01	3500	33fPNho1JZz	Energy scan	516880	553956	TRUE	Electrons	200 GeV				Tot: 300			45 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			We stopped data - sufficient numbers triggers for this configuration
+05/07/2026	10:09	10:12	3501	33fQi14XTtg	Energy scan	16300	71707	TRUE	Electrons	200 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Flat line and died after stopped
+05/07/2026	10:17	10:26	3502	33fR5XuEV9v	Energy scan	212720	240284	FALSE	Electrons	200 GeV				Tot: 300			47 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Crashed, we didn't replace correct environment
+05/07/2026	10:36	10:44	3503	33fRyMzUEq2	Energy scan	60560	391449	FALSE	Hadrons	200 GeV				Tot: 300			43 V	TRUE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			We stopped data - sufficient numbers triggers for this configuration
+05/07/2026	10:51	10:53	3504	33fShCyAXsi	Energy scan	23430	33634	FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Crashed after 1sec. -> we killed it 
+05/07/2026	11:30	11:35	3505	33fTPhNWteQ	Energy scan	55140	183222	FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Redout Flat line. We stopped data
+05/07/2026	11:43	11:47	3506	33fUzuYoxuS	Energy scan	84270	53103	FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Crashed when reading data
+05/07/2026	12:00	12:05	3507	33fVEUSxmLx	Testing	9873	130546	FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:08	12:13	3508	33fWC1cLL9S	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:14	12:16	3509	33fWTgYA1wA	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:17	12:21	3510	33fWaGeiufz	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:23	12:24	3511	33fWsQkPLSg	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:26	12:31	3512	33fWzFjo2CC	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:44	12:47	3513	33fXpGa7xYU	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:48	12:52	3514	33fXz5WcM1e	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:53	12:56	3515	33fYEoqiUrp	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	12:57	13:01	3516	33fYRj9FgvG	Testing			FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Technical	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Diagnostic run 
+05/07/2026	13:03	13:18	3517	33fYgMBesSc	Energy scan	-	534228	FALSE	Hadrons	200 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE			Flatlined,  environment had to be killed
+05/07/2026	13:23	13:32	3518	33fZajCbA6Q	Energy scan	231230	383509	FALSE	Hadrons	200 GeV				Tot: 300			45 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	We stopped data - sufficient numbers triggers for this configuration
+05/07/2026	13:36	13:45	3519	33faAGaekcC	Energy scan	219270	359196	FALSE	Hadrons	200 GeV				Tot: 300			47 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	
+05/07/2026	13:52	13:59	3520	33fawVTa9Re	Energy scan	104030	301085	FALSE	Hadrons	100 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE		Good	Crashed when reading data
+05/07/2026	14:03	14:09	3521	33fbSW831XJ	Energy scan	11699	191793	FALSE	Hadrons	100 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	We stopped data - sufficient numbers triggers for this configuration
+05/07/2026	14:12	14:15	3522	33fbo9B77qv	Energy scan	40370	166117	FALSE	Hadrons	100 GeV				Tot: 300			45 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE		Good	Flatlined,  environment had to be killed
+05/07/2026	14:18	14:25	3523	33fc9AykJZ2	Energy scan	16355	296452	FALSE	Hadrons	100 GeV				Tot: 300			45 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	We stopped data - sufficient numbers triggers for this configuration
+05/07/2026	14:34	14:43	3524	33fcpm1N2uA	Energy scan	19103	585892	FALSE	Electrons	100 GeV				Tot: 300			45 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	TRUE	TRUE		Good	Crashed when reading data
+05/07/2026	15:02	15:09	3525	33fe6Uicjwr	Energy scan	104930	361108	FALSE	Electrons	20 GeV				Tot: 300			45 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE		Good	Flatlined,  environment had to be killed
+05/07/2026	15:13	15:18	3526	33feaixR8GC	Energy scan	14059	221895	FALSE	Electrons	20 GeV				Tot: 300			43 V	FALSE	Physics 	rf = 4 cf = 4 cfc = 4 cc = 3 cd = 0	FALSE	FALSE	FALSE			Flatlined because of beam flatline
+05/07/2026	15:28	15:29	3527	33ffDWBhin8	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers
+05/07/2026	15:31	15:33	3528	33ffRcW7Vic	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers, flatlined
+05/07/2026	15:33	15:34	3529	33ffXP9bP96	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers
+05/07/2026	15:35	15:36	3530	33ffbmWQAQU	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Debug	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers
+05/07/2026	15:37	15:38	3531	33fffbGxjNC	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Technical	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers, flatlined
+05/07/2026	15:40	15:41	3532	33ffoEgfvsv	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Technical	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers, flatlined
+05/07/2026	15:41	15:42	3533	33fftn3EFm6	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Physics 	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers
+05/07/2026	15:43	15:44	3534	33ffxsXZD2t	Testing	-	-		Hadrons	150 GeV				Tot: 300			43 V	FALSE	Physics 	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers
+05/07/2026	15:44	15:46	3535	33fg2RDbZji	Testing	-	-	FALSE	Hadrons	150 GeV				Tot: 300			43 V	FALSE	Physics 	DEBUG	FALSE	FALSE	FALSE			DEBUG run, for checking new fibers
+05/07/2026			3536					FALSE	Hadrons									FALSE			FALSE	FALSE	FALSE			
+05/07/2026			3537					FALSE	Hadrons									FALSE			FALSE	FALSE	FALSE			
+05/07/2026			3538					FALSE										FALSE			FALSE	FALSE	FALSE			
+05/07/2026			3539					FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			
+								FALSE										FALSE			FALSE	FALSE	FALSE			

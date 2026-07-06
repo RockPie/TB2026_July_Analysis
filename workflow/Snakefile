@@ -1,0 +1,210 @@
+from pathlib import Path
+import json
+
+DATA_DIR = Path(config.get("data_dir", "data"))
+TEMPERATURE_ADC_SUM_CONFIG = Path(config.get("temperature_adc_sum_config", "config/temperature_adc_sum_comparison_2026_07_05.json"))
+
+
+def raw_path_for_run(wildcards):
+    run_name = f"{wildcards.run}.raw"
+    candidates = [
+        DATA_DIR / run_name,
+        Path("data") / run_name,
+        Path(run_name),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return str(candidates[0])
+
+
+RAW_RUNS = sorted(
+    path.stem
+    for path in DATA_DIR.glob("*.raw")
+    if not path.name.startswith("._")
+)
+if not RAW_RUNS and DATA_DIR != Path("data"):
+    RAW_RUNS = sorted(
+        path.stem
+        for path in Path("data").glob("*.raw")
+        if not path.name.startswith("._")
+    )
+
+SIZE_LIMIT = config.get("size_limit", "")
+CRC = bool(config.get("crc", True))
+SIZE_ARG = f"--size {SIZE_LIMIT}" if SIZE_LIMIT else ""
+CRC_ARG = "--crc" if CRC else ""
+TASK_MEM_MB = int(config.get("task_mem_mb", 4000))
+
+
+def load_comparison_config(path):
+    with open(path) as handle:
+        return json.load(handle)
+
+
+def histogram_path_from_raw(raw_path):
+    return f"dump/002/{Path(raw_path).name}/event_adc_sum_histograms.root"
+
+
+def histogram_paths_from_comparison_config(path):
+    comparison_config = load_comparison_config(path)
+    roots = []
+    for entry in comparison_config.get("entries", []):
+        if "histogram" in entry:
+            roots.append(entry["histogram"])
+        elif "raw" in entry:
+            roots.append(histogram_path_from_raw(entry["raw"]))
+        else:
+            raise ValueError(f"comparison config entry in {path} needs raw or histogram")
+    return list(dict.fromkeys(roots))
+
+
+def output_path_from_comparison_config(path, default_output):
+    comparison_config = load_comparison_config(path)
+    return comparison_config.get("output", default_output)
+
+
+TEMPERATURE_ADC_SUM_ROOTS = histogram_paths_from_comparison_config(TEMPERATURE_ADC_SUM_CONFIG)
+TEMPERATURE_ADC_SUM_OUTPUT = output_path_from_comparison_config(
+    TEMPERATURE_ADC_SUM_CONFIG,
+    "dump/003/temperature_adc_sum_comparison.pdf",
+)
+
+
+rule all:
+    input:
+        expand("dump/001/{run}.raw/sample_events.root", run=RAW_RUNS),
+        expand("dump/001/{run}.raw/pt_line_type_distributions.pdf", run=RAW_RUNS),
+        expand("dump/002/{run}.raw/adc_val0_accumulated_waveform.pdf", run=RAW_RUNS),
+        expand("dump/002/{run}.raw/event_adc_sum_histograms.root", run=RAW_RUNS),
+        "dump/003/adc_sum_comparison.pdf",
+        TEMPERATURE_ADC_SUM_OUTPUT,
+        "dump/004/qc_summary.pdf"
+
+
+rule build_001_rootifier:
+    input:
+        "CMakeLists.txt",
+        "scripts/001_Rootifier.cxx",
+        "include/binparse/parser.hpp",
+        "include/binparse/sample.hpp"
+    output:
+        "build/bin/001_Rootifier"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 001_Rootifier"
+
+
+rule build_002_adc_analysis:
+    input:
+        "CMakeLists.txt",
+        "scripts/002_ADC_Analysis.cxx"
+    output:
+        "build/bin/002_ADC_Analysis",
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 002_ADC_Analysis"
+
+
+rule build_003_adc_sum_comparison:
+    input:
+        "CMakeLists.txt",
+        "scripts/003_ADC_Sum_Comparison.cxx"
+    output:
+        "build/bin/003_ADC_Sum_Comparison"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 003_ADC_Sum_Comparison"
+
+
+rule build_004_qc:
+    input:
+        "CMakeLists.txt",
+        "scripts/004_QC.cxx"
+    output:
+        "build/bin/004_QC"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 004_QC"
+
+
+rule rootify:
+    input:
+        raw=raw_path_for_run,
+        exe="build/bin/001_Rootifier"
+    output:
+        root="dump/001/{run}.raw/sample_events.root",
+        pdf="dump/001/{run}.raw/pt_line_type_distributions.pdf"
+    log:
+        "dump/logs/001/{run}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --input {input.raw} {SIZE_ARG} {CRC_ARG} --recon > {log} 2>&1"
+
+
+rule adc_analysis:
+    input:
+        root="dump/001/{run}.raw/sample_events.root",
+        exe="build/bin/002_ADC_Analysis"
+    output:
+        pdf="dump/002/{run}.raw/adc_val0_accumulated_waveform.pdf",
+        root="dump/002/{run}.raw/event_adc_sum_histograms.root"
+    log:
+        "dump/logs/002/{run}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --input {input.root} > {log} 2>&1"
+
+
+rule compare_adc_sums:
+    input:
+        roots=expand("dump/002/{run}.raw/event_adc_sum_histograms.root", run=RAW_RUNS),
+        exe="build/bin/003_ADC_Sum_Comparison"
+    output:
+        "dump/003/adc_sum_comparison.pdf"
+    log:
+        "dump/logs/003/adc_sum_comparison.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --input {input.roots} --output {output} > {log} 2>&1"
+
+
+rule compare_adc_sums_temperature_config:
+    input:
+        config=str(TEMPERATURE_ADC_SUM_CONFIG),
+        roots=TEMPERATURE_ADC_SUM_ROOTS,
+        exe="build/bin/003_ADC_Sum_Comparison"
+    output:
+        TEMPERATURE_ADC_SUM_OUTPUT
+    log:
+        "dump/logs/003/temperature_adc_sum_comparison.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --config {input.config} > {log} 2>&1"
+
+
+rule qc_001_logs:
+    input:
+        logs=expand("dump/logs/001/{run}.log", run=RAW_RUNS),
+        exe="build/bin/004_QC"
+    output:
+        "dump/004/qc_summary.pdf"
+    log:
+        "dump/logs/004/qc_summary.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --log-dir dump/logs/001 --output {output} > {log} 2>&1"

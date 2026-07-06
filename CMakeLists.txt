@@ -70,11 +70,58 @@ add_executable(001_Rootifier
 	scripts/001_Rootifier.cxx
 )
 
+add_executable(002_ADC_Analysis
+	scripts/002_ADC_Analysis.cxx
+)
+
+add_executable(003_ADC_Sum_Comparison
+	scripts/003_ADC_Sum_Comparison.cxx
+)
+
+add_executable(004_QC
+	scripts/004_QC.cxx
+)
+
 set_target_properties(001_Rootifier PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
+set_target_properties(002_ADC_Analysis PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+set_target_properties(003_ADC_Sum_Comparison PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+set_target_properties(004_QC PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
 target_include_directories(001_Rootifier PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
+target_compile_options(001_Rootifier PRIVATE
+	$<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang,GNU>:-O3>
+)
+
+target_include_directories(002_ADC_Analysis PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
+target_compile_options(002_ADC_Analysis PRIVATE
+	$<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang,GNU>:-O3>
+)
+
+target_include_directories(003_ADC_Sum_Comparison PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
+target_include_directories(004_QC PRIVATE
 	${PROJECT_SOURCE_DIR}/include
 	${BINPARSE_INCLUDE_DIR}
 )
@@ -88,6 +135,39 @@ target_link_libraries(001_Rootifier PRIVATE
 	ROOT::Gpad
 	ROOT::Matrix
 	ROOT::RHTTP
+	spdlog_header_only
+	cxxopts::cxxopts
+)
+
+target_link_libraries(002_ADC_Analysis PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
+	spdlog_header_only
+	cxxopts::cxxopts
+)
+
+target_link_libraries(003_ADC_Sum_Comparison PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
+	spdlog_header_only
+	cxxopts::cxxopts
+)
+
+target_link_libraries(004_QC PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
 	spdlog_header_only
 	cxxopts::cxxopts
 )

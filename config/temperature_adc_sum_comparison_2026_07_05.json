@@ -1,0 +1,26 @@
+{
+  "title": "All lpGBT ADC sum temperature comparison",
+  "parameter_name": "temperature",
+  "parameter_unit": "#circC",
+  "parameter_error": 0.1,
+  "mu_linear_fit": 1,
+  "output": "dump/003/temperature_adc_sum_comparison.pdf",
+  "entries": [
+    {
+      "raw": "data/run__2026_07_05__20_34_34__.raw",
+      "value": -20
+    },
+    {
+      "raw": "data/run__2026_07_05__18_59_45__.raw",
+      "value": -10
+    },
+    {
+      "raw": "data/run__2026_07_05__17_50_25__.raw",
+      "value": -1.2
+    },
+    {
+      "raw": "data/run__2026_07_05__13_23_28__.raw",
+      "value": 14
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "All lpGBT ADC sum energy comparison",
+  "parameter_name": "energy",
+  "parameter_unit": "GeV",
+  "parameter_error": 0.0,
+  "parameter_error_percent": 3.0,
+  "mu_linear_fit": 1,
+  "output": "dump/003/energy_adc_sum_comparison_2026_07_05_06.pdf",
+  "entries": [
+    {
+      "raw": "data/run__2026_07_05__21_49_08__.raw",
+      "value": 350
+    },
+    {
+      "raw": "data/run__2026_07_06__01_45_36__.raw",
+      "value": 300
+    },
+    {
+      "raw": "data/run__2026_07_06__03_06_18__.raw",
+      "value": 250
+    },
+    {
+      "raw": "data/run__2026_07_06__00_53_46__.raw",
+      "value": 200
+    },
+    {
+      "raw": "data/run__2026_07_06__04_21_49__.raw",
+      "value": 150
+    }
+  ]
+}

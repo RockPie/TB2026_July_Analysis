@@ -39,3 +39,5 @@ lib/
 ._*
 .vscode/
 .idea/
+
+.snakemake/
