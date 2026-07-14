@@ -1,0 +1,24 @@
+{
+  "title": "All lpGBT ADC sum electron energy comparison, RF12, 45V bias",
+  "parameter_name": "energy",
+  "parameter_unit": "GeV",
+  "parameter_error": 0.0,
+  "parameter_error_percent": 3.0,
+  "mu_linear_fit": 1,
+  "compare_to_other_tb": 1,
+  "output": "dump/003/electron_energy_adc_sum_comparison_RF12_45V.pdf",
+  "entries": [
+    {
+      "raw": "data/run__2026_07_07__08_47_24__.raw",
+      "value": 100
+    },
+    {
+      "raw": "data/run__2026_07_07__09_51_56__.raw",
+      "value": 150
+    },
+    {
+      "raw": "data/run__2026_07_07__10_03_57__.raw",
+      "value": 200
+    }
+  ]
+}

@@ -133,7 +133,7 @@ inline void fill_sample_word(SampleElink& elink, std::size_t sample_index, std::
 	elink.val2[sample_index] = static_cast<std::uint16_t>(word & 0x03FFu);
 }
 
-inline std::optional<Sample> make_sample(const std::vector<DataLine>& lines, std::size_t first_line)
+inline std::optional<Sample> make_sample(const std::vector<DataLine>& lines, std::size_t first_line, bool require_consecutive_timestamps = true)
 {
 	if (first_line + kSampleLegalLineCount > lines.size()) {
 		return std::nullopt;
@@ -145,7 +145,7 @@ inline std::optional<Sample> make_sample(const std::vector<DataLine>& lines, std
 
 	for (std::size_t line_offset = 0; line_offset < kSampleLegalLineCount; ++line_offset) {
 		const auto& line = lines[first_line + line_offset];
-		if (line.header_vldb_id != sample.gbt_index || data_line_timestamp(line) != sample.first_timestamp + line_offset) {
+		if (line.header_vldb_id != sample.gbt_index || (require_consecutive_timestamps && data_line_timestamp(line) != sample.first_timestamp + line_offset)) {
 			return std::nullopt;
 		}
 	}

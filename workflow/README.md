@@ -40,3 +40,11 @@ The workflow also has a config-driven 003 rule that reads the same JSON and trac
 ```sh
 snakemake -s workflow/Snakefile --cores 1 --rerun-incomplete dump/003/temperature_adc_sum_comparison.pdf
 ```
+
+Compress raw data files with zstd and verify byte-for-byte decompression:
+
+```sh
+workflow/compress_raw_zstd.sh
+```
+
+By default this compresses `data/*.raw` to `data/zstd/*.raw.zst` with `zstd -T0 -3`, skips already verified outputs, and writes a `.sha256` sidecar for each compressed file. Use `--force` to recompress or `--level N` to choose another zstd level.

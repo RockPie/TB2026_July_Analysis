@@ -656,31 +656,32 @@ void draw_resolution_reference_comparison_page(const std::vector<InputHistogram>
 	comparison_canvas->SetTitle("Resolution comparison with other test beams");
 	comparison_canvas->cd();
 
-	TGraphErrors tb2026_graph(static_cast<int>(x.size()), x.data(), y.data(), x_error.data(), y_error.data());
-	tb2026_graph.SetName("tb2026_resolution_graph");
-	tb2026_graph.SetTitle("TB2026 July");
-	tb2026_graph.SetMarkerStyle(20);
-	tb2026_graph.SetMarkerSize(1.2);
-	tb2026_graph.SetMarkerColor(kAzure + 2);
-	tb2026_graph.SetLineColor(kAzure + 2);
-	tb2026_graph.SetLineWidth(3);
-	tb2026_graph.Draw("P same");
+	auto* tb2026_graph = new TGraphErrors(static_cast<int>(x.size()), x.data(), y.data(), x_error.data(), y_error.data());
+	tb2026_graph->SetName("tb2026_resolution_graph");
+	tb2026_graph->SetTitle("TB2026 July");
+	tb2026_graph->SetMarkerStyle(20);
+	tb2026_graph->SetMarkerSize(1.2);
+	tb2026_graph->SetMarkerColor(kAzure + 2);
+	tb2026_graph->SetLineColor(kAzure + 2);
+	tb2026_graph->SetLineWidth(3);
+	tb2026_graph->Draw("P same");
 
 	if (auto* legend = dynamic_cast<TLegend*>(comparison_canvas->GetListOfPrimitives()->FindObject("TPave"))) {
-		legend->AddEntry(&tb2026_graph, "FoCal-H TB2026 July", "p");
+		legend->AddEntry(tb2026_graph, "FoCal-H TB2026 July", "p");
 		legend->Draw();
 	} else {
-		TLegend fallback_legend(0.58, 0.68, 0.88, 0.86);
-		fallback_legend.SetBorderSize(0);
-		fallback_legend.SetFillStyle(0);
-		fallback_legend.SetTextSize(0.030);
-		fallback_legend.AddEntry(&tb2026_graph, "FoCal-H TB2026 July", "p");
-		fallback_legend.Draw();
+		auto* fallback_legend = new TLegend(0.58, 0.68, 0.88, 0.86);
+		fallback_legend->SetBorderSize(0);
+		fallback_legend->SetFillStyle(0);
+		fallback_legend->SetTextSize(0.030);
+		fallback_legend->AddEntry(tb2026_graph, "FoCal-H TB2026 July", "p");
+		fallback_legend->Draw();
 		comparison_canvas->Update();
 	}
 	comparison_canvas->Modified();
 	comparison_canvas->Update();
 	comparison_canvas->Print(output_path.c_str());
+	comparison_canvas.release();
 }
 
 void draw_comparison(std::vector<InputHistogram>& inputs, const std::string& output_path, const std::string& title,

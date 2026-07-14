@@ -9,6 +9,8 @@
 #include <TStyle.h>
 #include <TTree.h>
 
+#include <zstd.h>
+
 #include <binparse/parser.hpp>
 #include <binparse/sample.hpp>
 
@@ -54,6 +56,10 @@ constexpr std::array<std::uint8_t, kWordSize> kFmcIdleWord{0x36, 0x36, 0x36, 0x3
 constexpr std::array<std::uint8_t, kWordSize> kFmcInjectionWord{0x2d, 0x2d, 0x2d, 0x2d};
 constexpr std::array<std::uint8_t, kWordSize> kFmcL1aWord{0x4b, 0x4b, 0x4b, 0x4b};
 
+using RawLine = std::array<std::uint8_t, kRowSize>;
+using Word = std::array<std::uint8_t, kWordSize>;
+using LineRange = std::pair<std::size_t, std::size_t>;
+
 enum class LineType {
     heartbeat,
     trigger,
@@ -66,6 +72,7 @@ enum class LineType {
 
 enum class DisplayMode {
     raw,
+    line_header,
     non_dummy_non_heartbeat,
     data_idle,
     data_daq,
@@ -101,7 +108,14 @@ struct ReconEvent {
     LineStats counts;
     std::vector<bp::DataLine> dq_lines;
     std::vector<std::size_t> dq_line_indices;
+    std::vector<RawLine> dq_rows;
     std::vector<bp::Sample> samples;
+};
+
+struct IndexedDqLine {
+    bp::DataLine data_line;
+    std::size_t event_line = 0;
+    RawLine row{};
 };
 
 struct ReconSummary {
@@ -140,19 +154,143 @@ struct ReconStatistics {
     std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt_crc;
 };
 
-using RawLine = std::array<std::uint8_t, kRowSize>;
-using Word = std::array<std::uint8_t, kWordSize>;
-using LineRange = std::pair<std::size_t, std::size_t>;
-
 struct PrintableLine {
     std::size_t line_index = 0;
     RawLine row{};
     LineType type = LineType::other;
     std::optional<std::uint64_t> last_trigger_timestamp;
     std::optional<RawLine> hb_tail;
+    bool separator = false;
+};
+
+struct SampleLineCandidate {
+    bp::DataLine data_line;
+    PrintableLine printable_line;
 };
 
 bool data_lanes_all_match(const RawLine& row, const Word& expected);
+
+bool ends_with(std::string_view text, std::string_view suffix)
+{
+    return text.size() >= suffix.size() && text.substr(text.size() - suffix.size()) == suffix;
+}
+
+struct ZstdDStreamDeleter {
+    void operator()(ZSTD_DStream* stream) const
+    {
+        ZSTD_freeDStream(stream);
+    }
+};
+
+class RawInput {
+public:
+    explicit RawInput(const std::string& path)
+        : path_(path), compressed_(ends_with(path, ".zst"))
+    {
+        compressed_input_buffer_.resize(ZSTD_DStreamInSize());
+        decompressed_output_buffer_.resize(ZSTD_DStreamOutSize());
+        if (!compressed_) {
+            raw_input_buffer_.resize(kInputBufferSize);
+            input_.rdbuf()->pubsetbuf(raw_input_buffer_.data(), static_cast<std::streamsize>(raw_input_buffer_.size()));
+        }
+        input_.open(path, std::ios::binary);
+        if (!input_) {
+            throw std::runtime_error("failed to open input file: " + path);
+        }
+        if (compressed_) {
+            zstd_stream_.reset(ZSTD_createDStream());
+            if (!zstd_stream_) {
+                throw std::runtime_error("failed to create zstd decompression stream for: " + path);
+            }
+            const auto init_result = ZSTD_initDStream(zstd_stream_.get());
+            if (ZSTD_isError(init_result)) {
+                throw std::runtime_error("failed to initialize zstd stream for " + path + ": " + ZSTD_getErrorName(init_result));
+            }
+        }
+    }
+
+    bool read(char* destination, std::size_t size)
+    {
+        last_gcount_ = 0;
+        if (!compressed_) {
+            input_.read(destination, static_cast<std::streamsize>(size));
+            last_gcount_ = static_cast<std::size_t>(input_.gcount());
+            return last_gcount_ == size;
+        }
+
+        while (last_gcount_ < size) {
+            if (decompressed_output_pos_ == decompressed_output_size_ && !fill_decompressed_output()) {
+                break;
+            }
+            const auto available = decompressed_output_size_ - decompressed_output_pos_;
+            const auto needed = size - last_gcount_;
+            const auto copied = std::min(available, needed);
+            std::memcpy(destination + last_gcount_, decompressed_output_buffer_.data() + decompressed_output_pos_, copied);
+            decompressed_output_pos_ += copied;
+            last_gcount_ += copied;
+        }
+        return last_gcount_ == size;
+    }
+
+    std::size_t gcount() const { return last_gcount_; }
+    bool bad() const { return bad_; }
+
+    std::uintmax_t compressed_file_size() const
+    {
+        std::error_code error;
+        const auto size = std::filesystem::file_size(path_, error);
+        return error ? 0 : size;
+    }
+
+private:
+    bool fill_decompressed_output()
+    {
+        decompressed_output_pos_ = 0;
+        decompressed_output_size_ = 0;
+        while (decompressed_output_size_ == 0) {
+            if (compressed_input_pos_ == compressed_input_size_) {
+                input_.read(compressed_input_buffer_.data(), static_cast<std::streamsize>(compressed_input_buffer_.size()));
+                compressed_input_size_ = static_cast<std::size_t>(input_.gcount());
+                compressed_input_pos_ = 0;
+                if (compressed_input_size_ == 0) {
+                    bad_ = input_.bad();
+                    if (!bad_ && last_zstd_result_ != 0) {
+                        bad_ = true;
+                        throw std::runtime_error("zstd stream ended before frame was complete: " + path_);
+                    }
+                    return false;
+                }
+            }
+
+            ZSTD_inBuffer input_buffer{compressed_input_buffer_.data(), compressed_input_size_, compressed_input_pos_};
+            ZSTD_outBuffer output_buffer{decompressed_output_buffer_.data(), decompressed_output_buffer_.size(), 0};
+            const auto result = ZSTD_decompressStream(zstd_stream_.get(), &output_buffer, &input_buffer);
+            compressed_input_pos_ = input_buffer.pos;
+            decompressed_output_size_ = output_buffer.pos;
+            if (ZSTD_isError(result)) {
+                bad_ = true;
+                throw std::runtime_error("zstd decompression failed for " + path_ + ": " + ZSTD_getErrorName(result));
+            }
+            last_zstd_result_ = result;
+        }
+        return true;
+    }
+
+    std::string path_;
+    bool compressed_ = false;
+    bool bad_ = false;
+    std::ifstream input_;
+    std::vector<char> raw_input_buffer_;
+    std::unique_ptr<ZSTD_DStream, ZstdDStreamDeleter> zstd_stream_;
+    std::vector<char> compressed_input_buffer_;
+    std::size_t compressed_input_pos_ = 0;
+    std::size_t compressed_input_size_ = 0;
+    std::vector<char> decompressed_output_buffer_;
+    std::size_t decompressed_output_pos_ = 0;
+    std::size_t decompressed_output_size_ = 0;
+    std::size_t last_gcount_ = 0;
+    std::size_t last_zstd_result_ = 0;
+};
 
 struct DisplayOptions {
     std::vector<LineRange> selected_ranges;
@@ -341,6 +479,12 @@ bool frame_word_matches(const RawLine& row, std::size_t word_index, const Word& 
     return true;
 }
 
+std::uint32_t rotate_right32(std::uint32_t word, unsigned shift)
+{
+    shift &= 31u;
+    return shift == 0 ? word : (word >> shift) | (word << (32u - shift));
+}
+
 std::uint32_t reordered_word_value_from_row(const RawLine& row, std::size_t word_index)
 {
     const auto offset = kFrameWordOffset + word_index * kWordSize;
@@ -348,6 +492,32 @@ std::uint32_t reordered_word_value_from_row(const RawLine& row, std::size_t word
         (static_cast<std::uint32_t>(row[offset + 2]) << 8) |
         (static_cast<std::uint32_t>(row[offset + 1]) << 16) |
         (static_cast<std::uint32_t>(row[offset]) << 24);
+}
+
+bool frame_word_is_ac_idle_shift(const RawLine& row, std::size_t word_index)
+{
+    constexpr std::uint32_t kFrameIdleValue = 0xACCCCCCCu;
+    constexpr std::uint32_t kFrameIdleValue_flip = 0x9CCCCCCCu;
+    const auto value = reordered_word_value_from_row(row, word_index);
+    for (unsigned shift = 0; shift < 32; ++shift) {
+        if (value == rotate_right32(kFrameIdleValue, shift)) {
+            return true;
+        }
+        if (value == rotate_right32(kFrameIdleValue_flip, shift)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool data_lanes_all_ac_idle_shift(const RawLine& row)
+{
+    for (std::size_t word_index = 0; word_index < 4; ++word_index) {
+        if (!frame_word_is_ac_idle_shift(row, word_index)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 LineType classify_line(const RawLine& row)
@@ -362,7 +532,7 @@ LineType classify_line(const RawLine& row)
         return LineType::trigger;
     }
     if (row[0] == 0xac) {
-        return data_lanes_all_match(row, kFrameIdleWord) ? LineType::data_idle : LineType::data_daq;
+        return data_lanes_all_ac_idle_shift(row) ? LineType::data_idle : LineType::data_daq;
     }
     return LineType::other;
 }
@@ -448,7 +618,7 @@ bool data_lanes_all_match(const RawLine& row, const Word& expected)
 bool data_lanes_have_activity(const RawLine& row)
 {
     for (std::size_t word_index = 0; word_index < 4; ++word_index) {
-        if (!frame_word_matches(row, word_index, kZeroWord) && !frame_word_matches(row, word_index, kFrameIdleWord)) {
+        if (!frame_word_matches(row, word_index, kZeroWord) && !frame_word_is_ac_idle_shift(row, word_index)) {
             return true;
         }
     }
@@ -526,6 +696,15 @@ std::string file_name_only(const std::string& path)
         return path;
     }
     return path.substr(separator + 1);
+}
+
+std::string logical_input_file_name(const std::string& path)
+{
+    auto name = file_name_only(path);
+    if (ends_with(name, ".zst")) {
+        name.resize(name.size() - std::string_view(".zst").size());
+    }
+    return name;
 }
 
 std::string join_arguments(int argc, char** argv)
@@ -680,7 +859,7 @@ std::string describe_data_lanes(const RawLine& row)
     if (data_lanes_all_match(row, kZeroWord)) {
         return "all0";
     }
-    if (data_lanes_all_match(row, kFrameIdleWord)) {
+    if (data_lanes_all_ac_idle_shift(row)) {
         return "allAC";
     }
     if (!data_lanes_have_activity(row)) {
@@ -887,6 +1066,8 @@ bool line_matches_display_mode(const RawLine& row, LineType type, DisplayMode mo
     switch (mode) {
     case DisplayMode::raw:
         return true;
+    case DisplayMode::line_header:
+        return type == LineType::data_daq;
     case DisplayMode::non_dummy_non_heartbeat:
         return type != LineType::dummy && type != LineType::heartbeat;
     case DisplayMode::data_idle:
@@ -916,6 +1097,39 @@ bool should_print_line(std::size_t line_index, const RawLine& row, LineType type
     return matched_print_lines < display_options.limit && line_matches_display_mode(row, type, display_options.mode);
 }
 
+bool sample_index_selected(std::size_t sample_index, const DisplayOptions& display_options, std::size_t matched_samples)
+{
+    if (display_options.use_selected_ranges) {
+        return std::any_of(display_options.selected_ranges.begin(), display_options.selected_ranges.end(), [sample_index](const LineRange& range) {
+            return range.first <= sample_index && sample_index <= range.second;
+        });
+    }
+    return matched_samples < display_options.limit;
+}
+
+void append_line_header_sample(std::vector<PrintableLine>& printable_lines, const std::vector<SampleLineCandidate>& sample_lines)
+{
+    printable_lines.push_back(PrintableLine{.separator = true});
+    if (sample_lines.size() <= 4) {
+        for (const auto& line : sample_lines) {
+            printable_lines.push_back(line.printable_line);
+        }
+        return;
+    }
+    for (const auto offset : {std::size_t{0}, std::size_t{1}, sample_lines.size() - 2, sample_lines.size() - 1}) {
+        printable_lines.push_back(sample_lines[offset].printable_line);
+    }
+}
+
+void append_line_header_partial_cluster(std::vector<PrintableLine>& printable_lines, const std::vector<SampleLineCandidate>& sample_lines, ParseSummary& summary)
+{
+    if (sample_lines.empty() || sample_lines.size() >= bp::kSampleLegalLineCount) {
+        return;
+    }
+    append_line_header_sample(printable_lines, sample_lines);
+    summary.printed_lines += std::min<std::size_t>(sample_lines.size(), 4);
+}
+
 void print_lines(const std::vector<PrintableLine>& lines)
 {
     std::size_t index_width = 1;
@@ -924,6 +1138,10 @@ void print_lines(const std::vector<PrintableLine>& lines)
     }
 
     for (const auto& line : lines) {
+        if (line.separator) {
+            spdlog::info("------");
+            continue;
+        }
         const auto detail = describe_line(line.row, line.type, line.last_trigger_timestamp, line.hb_tail);
         if (detail.empty()) {
             spdlog::info("L{:>{}} {} {}", line.line_index, index_width, color_line_type_code(line.type), format_bytes(line.row.data(), line.row.size()));
@@ -955,13 +1173,7 @@ ParseSummary scan_raw_file(const std::string& input_path, const DisplayOptions& 
 {
     const auto start_time = std::chrono::steady_clock::now();
 
-    std::vector<char> input_buffer(kInputBufferSize);
-    std::ifstream input;
-    input.rdbuf()->pubsetbuf(input_buffer.data(), static_cast<std::streamsize>(input_buffer.size()));
-    input.open(input_path, std::ios::binary);
-    if (!input) {
-        throw std::runtime_error("failed to open input file: " + input_path);
-    }
+    RawInput input(input_path);
 
     ParseSummary summary;
     summary.input_path = input_path;
@@ -971,8 +1183,11 @@ ParseSummary scan_raw_file(const std::string& input_path, const DisplayOptions& 
     std::size_t matched_print_lines = 0;
     bool incomplete_read = false;
     std::vector<PrintableLine> printable_lines;
+    std::array<std::vector<SampleLineCandidate>, 256> line_header_candidates_by_gbt;
+    std::size_t matched_line_header_samples = 0;
+    std::size_t line_header_sample_index = 0;
     while ((!max_rows.has_value() || summary.total_lines < *max_rows) && (!max_bytes.has_value() || summary.total_bytes_parsed + row.size() <= *max_bytes)) {
-        if (!input.read(reinterpret_cast<char*>(row.data()), static_cast<std::streamsize>(row.size()))) {
+        if (!input.read(reinterpret_cast<char*>(row.data()), row.size())) {
             incomplete_read = true;
             break;
         }
@@ -985,7 +1200,7 @@ ParseSummary scan_raw_file(const std::string& input_path, const DisplayOptions& 
         std::optional<RawLine> hb_tail;
         if (type == LineType::heartbeat && (!max_rows.has_value() || summary.total_lines < *max_rows) && (!max_bytes.has_value() || summary.total_bytes_parsed + row.size() <= *max_bytes)) {
             RawLine tail{};
-            if (input.read(reinterpret_cast<char*>(tail.data()), static_cast<std::streamsize>(tail.size()))) {
+            if (input.read(reinterpret_cast<char*>(tail.data()), tail.size())) {
                 ++summary.total_lines;
                 summary.total_bytes_parsed += tail.size();
                 increment_stats(summary.stats, LineType::heartbeat);
@@ -995,7 +1210,35 @@ ParseSummary scan_raw_file(const std::string& input_path, const DisplayOptions& 
             }
         }
 
-        if (should_print_line(line_index, row, type, display_options, matched_print_lines)) {
+        if (display_options.mode == DisplayMode::line_header && type == LineType::data_daq) {
+            auto& candidates = line_header_candidates_by_gbt[row[1]];
+            const auto data_line = parse_data_line_struct(row);
+            if (!candidates.empty() && bp::data_line_timestamp(data_line) != bp::data_line_timestamp(candidates.back().data_line) + 1) {
+                append_line_header_partial_cluster(printable_lines, candidates, summary);
+                candidates.clear();
+            }
+            candidates.push_back(SampleLineCandidate{data_line, PrintableLine{line_index, row, type, last_trigger_timestamp, hb_tail}});
+            while (candidates.size() >= bp::kSampleLegalLineCount) {
+                std::vector<bp::DataLine> candidate_lines;
+                candidate_lines.reserve(bp::kSampleLegalLineCount);
+                for (std::size_t offset = 0; offset < bp::kSampleLegalLineCount; ++offset) {
+                    candidate_lines.push_back(candidates[offset].data_line);
+                }
+                if (bp::make_sample(candidate_lines, 0)) {
+                    ++line_header_sample_index;
+                    if (sample_index_selected(line_header_sample_index, display_options, matched_line_header_samples)) {
+                        append_line_header_sample(printable_lines, candidates);
+                        summary.printed_lines += 4;
+                        if (!display_options.use_selected_ranges) {
+                            ++matched_line_header_samples;
+                        }
+                    }
+                    candidates.erase(candidates.begin(), candidates.begin() + static_cast<std::ptrdiff_t>(bp::kSampleLegalLineCount));
+                } else {
+                    candidates.erase(candidates.begin());
+                }
+            }
+        } else if (should_print_line(line_index, row, type, display_options, matched_print_lines)) {
             printable_lines.push_back(PrintableLine{line_index, row, type, last_trigger_timestamp, hb_tail});
             ++summary.printed_lines;
             if (!display_options.use_selected_ranges) {
@@ -1008,28 +1251,31 @@ ParseSummary scan_raw_file(const std::string& input_path, const DisplayOptions& 
         }
     }
 
+    if (display_options.mode == DisplayMode::line_header) {
+        for (const auto& candidates : line_header_candidates_by_gbt) {
+            append_line_header_partial_cluster(printable_lines, candidates, summary);
+        }
+    }
+
     const bool stopped_by_size = max_bytes.has_value() && summary.total_bytes_parsed < *max_bytes && summary.total_bytes_parsed + row.size() > *max_bytes;
     if (stopped_by_size) {
         const auto remaining_bytes = static_cast<std::size_t>(*max_bytes - summary.total_bytes_parsed);
         std::vector<char> tail(remaining_bytes);
         if (remaining_bytes != 0) {
-            input.read(tail.data(), static_cast<std::streamsize>(tail.size()));
-            summary.partial_tail_bytes = static_cast<std::size_t>(input.gcount());
+            input.read(tail.data(), tail.size());
+            summary.partial_tail_bytes = input.gcount();
         }
     } else if (incomplete_read) {
-        summary.partial_tail_bytes = static_cast<std::size_t>(input.gcount());
+        summary.partial_tail_bytes = input.gcount();
     }
     if (input.bad()) {
-        throw std::runtime_error(read_failure_message(input_path, summary.total_lines, summary.total_bytes_parsed, input.gcount()));
+        throw std::runtime_error(read_failure_message(input_path, summary.total_lines, summary.total_bytes_parsed, static_cast<std::streamsize>(input.gcount())));
     }
     if (summary.partial_tail_bytes != 0) {
         increment_stats(summary.stats, LineType::partial_tail);
     }
 
-    std::ifstream size_input(input_path, std::ios::binary | std::ios::ate);
-    if (size_input) {
-        summary.file_size = static_cast<std::uintmax_t>(size_input.tellg());
-    }
+    summary.file_size = input.compressed_file_size();
 
     const auto end_time = std::chrono::steady_clock::now();
     summary.elapsed_sec = std::chrono::duration<double>(end_time - start_time).count();
@@ -1042,7 +1288,7 @@ void print_summary(const ParseSummary& summary)
     const auto parsed_bytes = static_cast<std::uintmax_t>(summary.total_bytes_parsed + summary.partial_tail_bytes);
 
     print_box("File summary", {
-        {"File", file_name_only(summary.input_path)},
+        {"File", logical_input_file_name(summary.input_path)},
         {"Size", format_byte_size(parsed_bytes)},
         {"Parsed lines", format_count(summary.total_lines) + " x " + std::to_string(kRowSize) + " bytes"},
         {"Speed", format_byte_rate(summary.total_bytes_parsed, summary.elapsed_sec) + " in " + format_seconds(summary.elapsed_sec)},
@@ -1094,7 +1340,7 @@ void write_root_summary(const std::string& output_path, const ParseSummary& summ
 
 std::filesystem::path recon_output_dir(const std::string& input_path)
 {
-    return std::filesystem::path("dump") / "001" / file_name_only(input_path);
+    return std::filesystem::path("dump") / "001" / logical_input_file_name(input_path);
 }
 
 void fill_event_count(ReconEvent& event, LineType type)
@@ -1206,45 +1452,184 @@ bool data_line_has_l1a_fcmd(const bp::DataLine& line)
     return line.data_word4 == compact_word_value(kFmcL1aWord);
 }
 
-void collect_samples_from_cluster(ReconEvent& event, const std::vector<bp::DataLine>& cluster_lines)
+std::string format_sample_word_hex(std::uint32_t word)
 {
+    std::ostringstream stream;
+    stream << "0x" << std::hex << std::uppercase << std::setw(8) << std::setfill('0') << word;
+    return stream.str();
+}
+
+std::string describe_failed_sample_candidate(const std::vector<bp::DataLine>& cluster_lines, std::size_t first_line)
+{
+    if (first_line + bp::kSampleLegalLineCount > cluster_lines.size()) {
+        return "not enough lines for 40-line sample";
+    }
+
+    const auto expected_gbt = cluster_lines[first_line].header_vldb_id;
+    const auto expected_timestamp = bp::data_line_timestamp(cluster_lines[first_line]);
+    for (std::size_t line_offset = 0; line_offset < bp::kSampleLegalLineCount; ++line_offset) {
+        const auto& line = cluster_lines[first_line + line_offset];
+        const auto timestamp = bp::data_line_timestamp(line);
+        if (line.header_vldb_id != expected_gbt) {
+            std::ostringstream message;
+            message << "GBT changed at sample line " << line_offset << ": expected " << static_cast<unsigned>(expected_gbt)
+                    << ", got " << static_cast<unsigned>(line.header_vldb_id);
+            return message.str();
+        }
+        if (timestamp != expected_timestamp + line_offset) {
+            std::ostringstream message;
+            message << "timestamp discontinuity at sample line " << line_offset << ": expected " << expected_timestamp + line_offset
+                    << ", got " << timestamp;
+            return message.str();
+        }
+    }
+
+    std::vector<std::pair<std::size_t, std::uint32_t>> invalid_header_words;
+    for (std::size_t elink_index = 0; elink_index < bp::kSampleElinkCount; ++elink_index) {
+        const auto header_word = bp::sample_word(bp::data_word_at(cluster_lines[first_line], elink_index));
+        if (!bp::is_sample_header_word(header_word)) {
+            invalid_header_words.push_back({elink_index, header_word});
+        }
+    }
+    if (!invalid_header_words.empty()) {
+        std::ostringstream message;
+        message << (invalid_header_words.size() == 1 ? "elink first word is not a sample header: " : "elink first words are not sample headers: ");
+        for (std::size_t index = 0; index < invalid_header_words.size(); ++index) {
+            if (index != 0) {
+                message << ", ";
+            }
+            message << "elink " << invalid_header_words[index].first << '=' << format_sample_word_hex(invalid_header_words[index].second);
+        }
+        return message.str();
+    }
+
+    return "unknown failure in sample reconstruction";
+}
+
+void print_failed_sample_candidate_diagnostics(const ReconEvent& event, const std::vector<bp::DataLine>& cluster_lines,
+    const std::vector<RawLine>& cluster_rows, std::size_t cluster_first_event_line, std::size_t first_line, const std::string& reason,
+    bool print_candidate_lines)
+{
+    const auto first_timestamp = bp::data_line_timestamp(cluster_lines[first_line]);
+    const auto last_timestamp = bp::data_line_timestamp(cluster_lines[std::min(cluster_lines.size() - 1, first_line + bp::kSampleLegalLineCount - 1)]);
+    spdlog::warn("001 recon diagnose: event trigger line {}, GBT {}, DQ cluster line {} length {}, candidate offset {} failed: {}",
+        event.trigger_line, static_cast<unsigned>(cluster_lines[first_line].header_vldb_id), cluster_first_event_line, cluster_lines.size(), first_line, reason);
+    spdlog::warn("001 recon diagnose: candidate timestamps first={} last={} span={}", first_timestamp, last_timestamp, last_timestamp - first_timestamp + 1);
+
+    if (!print_candidate_lines || cluster_rows.size() != cluster_lines.size()) {
+        return;
+    }
+
+    std::vector<PrintableLine> printable_lines;
+    const auto lines_to_print = std::min<std::size_t>(bp::kSampleLegalLineCount, cluster_lines.size() - first_line);
+    printable_lines.reserve(lines_to_print + 1);
+    printable_lines.push_back(PrintableLine{.separator = true});
+    for (std::size_t offset = 0; offset < lines_to_print; ++offset) {
+        const auto line_index = event.trigger_line + cluster_first_event_line + first_line + offset;
+        printable_lines.push_back(PrintableLine{line_index, cluster_rows[first_line + offset], LineType::data_daq, std::nullopt, std::nullopt});
+    }
+    print_lines(printable_lines);
+}
+
+void print_failed_dq_cluster_header(const ReconEvent& event, const std::vector<bp::DataLine>& cluster_lines,
+    std::size_t cluster_first_event_line, std::size_t samples_before)
+{
+    if (cluster_lines.empty() || event.samples.size() != samples_before) {
+        return;
+    }
+    const auto& first_line = cluster_lines.front();
+    const auto& last_line = cluster_lines.back();
+    spdlog::warn("001 recon diagnose: failed DQ cluster header: trigger line {}, event-line {}, GBT {}, length {}, timestamp {}..{}",
+        event.trigger_line,
+        cluster_first_event_line,
+        static_cast<unsigned>(first_line.header_vldb_id),
+        cluster_lines.size(),
+        bp::data_line_timestamp(first_line),
+        bp::data_line_timestamp(last_line));
+    spdlog::warn("001 recon diagnose: failed DQ cluster first header fields: bx={} orbit={} data=[{}, {}, {}, {}, {}, {}]",
+        first_line.bx_cnt,
+        first_line.ob_cnt,
+        format_sample_word_hex(first_line.data_word0),
+        format_sample_word_hex(first_line.data_word1),
+        format_sample_word_hex(first_line.data_word2),
+        format_sample_word_hex(first_line.data_word3),
+        format_sample_word_hex(first_line.data_word4),
+        format_sample_word_hex(first_line.data_word5));
+}
+
+void collect_samples_from_cluster(ReconEvent& event, const std::vector<bp::DataLine>& cluster_lines, const std::vector<RawLine>& cluster_rows,
+    std::size_t cluster_first_event_line, bool diagnose_recon, bool require_consecutive_timestamps, bool print_diagnose_candidate_lines,
+    bool drop_failed_sample_candidate)
+{
+    const auto samples_before = event.samples.size();
     for (std::size_t first_line = 0; first_line + bp::kSampleLegalLineCount <= cluster_lines.size();) {
-        if (auto sample = bp::make_sample(cluster_lines, first_line)) {
+        if (auto sample = bp::make_sample(cluster_lines, first_line, require_consecutive_timestamps)) {
             event.samples.push_back(*sample);
             first_line += bp::kSampleLegalLineCount;
             continue;
         }
-        ++first_line;
+        if (diagnose_recon) {
+            print_failed_sample_candidate_diagnostics(event, cluster_lines, cluster_rows, cluster_first_event_line, first_line,
+                describe_failed_sample_candidate(cluster_lines, first_line), print_diagnose_candidate_lines);
+        }
+        first_line += drop_failed_sample_candidate ? bp::kSampleLegalLineCount : 1;
+    }
+    if (diagnose_recon) {
+        print_failed_dq_cluster_header(event, cluster_lines, cluster_first_event_line, samples_before);
     }
 }
 
-void build_event_samples(ReconEvent& event)
+void build_event_samples(ReconEvent& event, bool diagnose_recon = false, bool require_consecutive_timestamps = true,
+    bool print_diagnose_candidate_lines = true, bool drop_failed_sample_candidate = false)
 {
-    std::array<std::vector<bp::DataLine>, 256> lines_by_gbt;
-    for (const auto& line : event.dq_lines) {
-        lines_by_gbt[line.header_vldb_id].push_back(line);
+    std::array<std::vector<IndexedDqLine>, 256> lines_by_gbt;
+    for (std::size_t index = 0; index < event.dq_lines.size(); ++index) {
+        const auto event_line = index < event.dq_line_indices.size() ? event.dq_line_indices[index] - event.trigger_line : index;
+        const auto row = index < event.dq_rows.size() ? event.dq_rows[index] : RawLine{};
+        lines_by_gbt[event.dq_lines[index].header_vldb_id].push_back(IndexedDqLine{event.dq_lines[index], event_line, row});
     }
 
-    for (auto& lines : lines_by_gbt) {
-        if (lines.empty()) {
+    for (auto& indexed_lines : lines_by_gbt) {
+        if (indexed_lines.empty()) {
             continue;
         }
-        std::sort(lines.begin(), lines.end(), [](const auto& left, const auto& right) {
-            return bp::data_line_timestamp(left) < bp::data_line_timestamp(right);
+        std::sort(indexed_lines.begin(), indexed_lines.end(), [](const auto& left, const auto& right) {
+            return bp::data_line_timestamp(left.data_line) < bp::data_line_timestamp(right.data_line);
         });
 
+        std::vector<bp::DataLine> lines;
+        std::vector<std::size_t> event_lines;
+        std::vector<RawLine> rows;
+        lines.reserve(indexed_lines.size());
+        event_lines.reserve(indexed_lines.size());
+        rows.reserve(indexed_lines.size());
+        for (const auto& indexed_line : indexed_lines) {
+            lines.push_back(indexed_line.data_line);
+            event_lines.push_back(indexed_line.event_line);
+            rows.push_back(indexed_line.row);
+        }
+
         std::vector<bp::DataLine> cluster_lines;
+        std::vector<RawLine> cluster_rows;
+        std::size_t cluster_first_event_line = event_lines.front();
         cluster_lines.push_back(lines.front());
+        cluster_rows.push_back(rows.front());
         for (std::size_t index = 1; index < lines.size(); ++index) {
-            if (bp::data_line_timestamp(lines[index]) == bp::data_line_timestamp(lines[index - 1]) + 1) {
+            if (!require_consecutive_timestamps || bp::data_line_timestamp(lines[index]) == bp::data_line_timestamp(lines[index - 1]) + 1) {
                 cluster_lines.push_back(lines[index]);
+                cluster_rows.push_back(rows[index]);
                 continue;
             }
-            collect_samples_from_cluster(event, cluster_lines);
+            collect_samples_from_cluster(event, cluster_lines, cluster_rows, cluster_first_event_line, diagnose_recon,
+                require_consecutive_timestamps, print_diagnose_candidate_lines, drop_failed_sample_candidate);
             cluster_lines.clear();
+            cluster_rows.clear();
+            cluster_first_event_line = event_lines[index];
             cluster_lines.push_back(lines[index]);
+            cluster_rows.push_back(rows[index]);
         }
-        collect_samples_from_cluster(event, cluster_lines);
+        collect_samples_from_cluster(event, cluster_lines, cluster_rows, cluster_first_event_line, diagnose_recon,
+            require_consecutive_timestamps, print_diagnose_candidate_lines, drop_failed_sample_candidate);
     }
 }
 
@@ -1253,6 +1638,7 @@ std::uintmax_t estimated_recon_event_memory_bytes(const ReconEvent& event)
     return sizeof(ReconEvent) +
         event.dq_lines.capacity() * sizeof(bp::DataLine) +
         event.dq_line_indices.capacity() * sizeof(std::size_t) +
+        event.dq_rows.capacity() * sizeof(RawLine) +
         event.samples.capacity() * sizeof(bp::Sample);
 }
 
@@ -1272,26 +1658,22 @@ void check_recon_memory_budget(const ReconSummary& summary, const ReconEvent& pe
     throw std::runtime_error(message.str());
 }
 
-void push_recon_event(ReconSummary& summary, ReconEvent event)
+void push_recon_event(ReconSummary& summary, ReconEvent event, bool diagnose_recon = false, bool require_consecutive_timestamps = true,
+    bool print_diagnose_candidate_lines = true, bool drop_failed_sample_candidate = false)
 {
-    build_event_samples(event);
+    build_event_samples(event, diagnose_recon, require_consecutive_timestamps, print_diagnose_candidate_lines, drop_failed_sample_candidate);
     check_recon_memory_budget(summary, event);
     summary.cached_event_memory_bytes += estimated_recon_event_memory_bytes(event);
     summary.events.push_back(std::move(event));
 }
 
 ReconSummary reconstruct_events(const std::string& input_path, std::optional<std::size_t> max_rows, std::optional<std::uintmax_t> max_bytes,
-    std::optional<std::uintmax_t> memory_limit_bytes)
+    std::optional<std::uintmax_t> memory_limit_bytes, bool diagnose_recon = false, bool require_consecutive_timestamps = true,
+    bool print_diagnose_candidate_lines = true, bool drop_failed_sample_candidate = false)
 {
     const auto start_time = std::chrono::steady_clock::now();
 
-    std::vector<char> input_buffer(kInputBufferSize);
-    std::ifstream input;
-    input.rdbuf()->pubsetbuf(input_buffer.data(), static_cast<std::streamsize>(input_buffer.size()));
-    input.open(input_path, std::ios::binary);
-    if (!input) {
-        throw std::runtime_error("failed to open input file: " + input_path);
-    }
+    RawInput input(input_path);
 
     ReconSummary summary;
     summary.input_path = input_path;
@@ -1304,7 +1686,7 @@ ReconSummary reconstruct_events(const std::string& input_path, std::optional<std
     RawLine row{};
     bool incomplete_read = false;
     while ((!max_rows.has_value() || summary.total_lines < *max_rows) && (!max_bytes.has_value() || summary.total_bytes_parsed + row.size() <= *max_bytes)) {
-        if (!input.read(reinterpret_cast<char*>(row.data()), static_cast<std::streamsize>(row.size()))) {
+        if (!input.read(reinterpret_cast<char*>(row.data()), row.size())) {
             incomplete_read = true;
             break;
         }
@@ -1320,7 +1702,7 @@ ReconSummary reconstruct_events(const std::string& input_path, std::optional<std
 
         if (type == LineType::trigger) {
             if (current_event.has_value()) {
-                push_recon_event(summary, std::move(*current_event));
+                push_recon_event(summary, std::move(*current_event), diagnose_recon, require_consecutive_timestamps, print_diagnose_candidate_lines, drop_failed_sample_candidate);
             }
             current_event = ReconEvent{};
             current_event->trigger_line = line_index;
@@ -1330,7 +1712,7 @@ ReconSummary reconstruct_events(const std::string& input_path, std::optional<std
 
         if (type == LineType::heartbeat && (!max_rows.has_value() || summary.total_lines < *max_rows) && (!max_bytes.has_value() || summary.total_bytes_parsed + row.size() <= *max_bytes)) {
             RawLine tail{};
-            if (input.read(reinterpret_cast<char*>(tail.data()), static_cast<std::streamsize>(tail.size()))) {
+            if (input.read(reinterpret_cast<char*>(tail.data()), tail.size())) {
                 ++summary.total_lines;
                 summary.total_bytes_parsed += tail.size();
                 increment_stats(summary.stats, LineType::heartbeat);
@@ -1348,13 +1730,14 @@ ReconSummary reconstruct_events(const std::string& input_path, std::optional<std
             if (type == LineType::data_daq) {
                 current_event->dq_lines.push_back(parse_data_line_struct(row));
                 current_event->dq_line_indices.push_back(line_index);
+                current_event->dq_rows.push_back(row);
                 check_recon_memory_budget(summary, *current_event);
             }
         }
     }
 
     if (current_event.has_value()) {
-        push_recon_event(summary, std::move(*current_event));
+        push_recon_event(summary, std::move(*current_event), diagnose_recon, require_consecutive_timestamps, print_diagnose_candidate_lines, drop_failed_sample_candidate);
     }
 
     const bool stopped_by_size = max_bytes.has_value() && summary.total_bytes_parsed < *max_bytes && summary.total_bytes_parsed + row.size() > *max_bytes;
@@ -1362,14 +1745,14 @@ ReconSummary reconstruct_events(const std::string& input_path, std::optional<std
         const auto remaining_bytes = static_cast<std::size_t>(*max_bytes - summary.total_bytes_parsed);
         std::vector<char> tail(remaining_bytes);
         if (remaining_bytes != 0) {
-            input.read(tail.data(), static_cast<std::streamsize>(tail.size()));
-            summary.partial_tail_bytes = static_cast<std::size_t>(input.gcount());
+            input.read(tail.data(), tail.size());
+            summary.partial_tail_bytes = input.gcount();
         }
     } else if (incomplete_read) {
-        summary.partial_tail_bytes = static_cast<std::size_t>(input.gcount());
+        summary.partial_tail_bytes = input.gcount();
     }
     if (input.bad()) {
-        throw std::runtime_error(read_failure_message(input_path, summary.total_lines, summary.total_bytes_parsed, input.gcount()));
+        throw std::runtime_error(read_failure_message(input_path, summary.total_lines, summary.total_bytes_parsed, static_cast<std::streamsize>(input.gcount())));
     }
     if (summary.partial_tail_bytes != 0) {
         increment_stats(summary.stats, LineType::partial_tail);
@@ -1472,7 +1855,8 @@ std::array<std::vector<std::size_t>, 256> dq_cluster_lengths_by_gbt(const std::v
     return lengths_by_gbt;
 }
 
-std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt(const std::vector<ReconEvent>& events, bool crc_only)
+std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt(const std::vector<ReconEvent>& events, bool crc_only,
+    bool require_sample_cluster_timestamps = true)
 {
     std::array<std::vector<std::size_t>, 256> lengths_by_gbt;
     for (const auto& event : events) {
@@ -1492,7 +1876,7 @@ std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt(const st
             std::sort(timestamps.begin(), timestamps.end());
             std::size_t cluster_length = 1;
             for (std::size_t index = 1; index < timestamps.size(); ++index) {
-                if (timestamps[index] == timestamps[index - 1] + bp::kSampleLegalLineCount + 1) {
+                if (!require_sample_cluster_timestamps || timestamps[index] == timestamps[index - 1] + bp::kSampleLegalLineCount + 1) {
                     ++cluster_length;
                     continue;
                 }
@@ -1505,7 +1889,8 @@ std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt(const st
     return lengths_by_gbt;
 }
 
-std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt(const ReconEvent& event, bool crc_only)
+std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt(const ReconEvent& event, bool crc_only,
+    bool require_sample_cluster_timestamps = true)
 {
     std::array<std::vector<std::size_t>, 256> lengths_by_gbt;
     std::array<std::vector<std::uint64_t>, 256> first_timestamps_by_gbt;
@@ -1524,7 +1909,7 @@ std::array<std::vector<std::size_t>, 256> sample_cluster_lengths_by_gbt(const Re
         std::sort(timestamps.begin(), timestamps.end());
         std::size_t cluster_length = 1;
         for (std::size_t index = 1; index < timestamps.size(); ++index) {
-            if (timestamps[index] == timestamps[index - 1] + bp::kSampleLegalLineCount + 1) {
+            if (!require_sample_cluster_timestamps || timestamps[index] == timestamps[index - 1] + bp::kSampleLegalLineCount + 1) {
                 ++cluster_length;
                 continue;
             }
@@ -1593,9 +1978,11 @@ void append_lengths_by_gbt(std::array<std::vector<std::size_t>, 256>& destinatio
     }
 }
 
-void update_recon_statistics_from_event(ReconStatistics& statistics, ReconEvent& event)
+void update_recon_statistics_from_event(ReconStatistics& statistics, ReconEvent& event, bool diagnose_recon = false,
+    bool require_consecutive_timestamps = true, bool print_diagnose_candidate_lines = true, bool drop_failed_sample_candidate = false,
+    bool require_sample_cluster_timestamps = true)
 {
-    build_event_samples(event);
+    build_event_samples(event, diagnose_recon, require_consecutive_timestamps, print_diagnose_candidate_lines, drop_failed_sample_candidate);
     ++statistics.pt_events;
     statistics.total_dq_lines += event.dq_lines.size();
     statistics.total_samples += event.samples.size();
@@ -1624,21 +2011,17 @@ void update_recon_statistics_from_event(ReconStatistics& statistics, ReconEvent&
     }
 
     append_lengths_by_gbt(statistics.dq_cluster_lengths_by_gbt, dq_cluster_lengths_by_gbt(event));
-    append_lengths_by_gbt(statistics.sample_cluster_lengths_by_gbt_all, sample_cluster_lengths_by_gbt(event, false));
-    append_lengths_by_gbt(statistics.sample_cluster_lengths_by_gbt_crc, sample_cluster_lengths_by_gbt(event, true));
+    append_lengths_by_gbt(statistics.sample_cluster_lengths_by_gbt_all, sample_cluster_lengths_by_gbt(event, false, require_sample_cluster_timestamps));
+    append_lengths_by_gbt(statistics.sample_cluster_lengths_by_gbt_crc, sample_cluster_lengths_by_gbt(event, true, require_sample_cluster_timestamps));
 }
 
-ReconStatistics scan_recon_statistics(const std::string& input_path, std::optional<std::size_t> max_rows, std::optional<std::uintmax_t> max_bytes)
+ReconStatistics scan_recon_statistics(const std::string& input_path, std::optional<std::size_t> max_rows, std::optional<std::uintmax_t> max_bytes,
+    bool diagnose_recon = false, bool require_consecutive_timestamps = true, bool print_diagnose_candidate_lines = true,
+    bool drop_failed_sample_candidate = false, bool require_sample_cluster_timestamps = true)
 {
     const auto start_time = std::chrono::steady_clock::now();
 
-    std::vector<char> input_buffer(kInputBufferSize);
-    std::ifstream input;
-    input.rdbuf()->pubsetbuf(input_buffer.data(), static_cast<std::streamsize>(input_buffer.size()));
-    input.open(input_path, std::ios::binary);
-    if (!input) {
-        throw std::runtime_error("failed to open input file: " + input_path);
-    }
+    RawInput input(input_path);
 
     ReconStatistics statistics;
     statistics.input_path = input_path;
@@ -1650,7 +2033,7 @@ ReconStatistics scan_recon_statistics(const std::string& input_path, std::option
     RawLine row{};
     bool incomplete_read = false;
     while ((!max_rows.has_value() || statistics.total_lines < *max_rows) && (!max_bytes.has_value() || statistics.total_bytes_parsed + row.size() <= *max_bytes)) {
-        if (!input.read(reinterpret_cast<char*>(row.data()), static_cast<std::streamsize>(row.size()))) {
+        if (!input.read(reinterpret_cast<char*>(row.data()), row.size())) {
             incomplete_read = true;
             break;
         }
@@ -1666,7 +2049,8 @@ ReconStatistics scan_recon_statistics(const std::string& input_path, std::option
 
         if (type == LineType::trigger) {
             if (current_event.has_value()) {
-                update_recon_statistics_from_event(statistics, *current_event);
+                update_recon_statistics_from_event(statistics, *current_event, diagnose_recon, require_consecutive_timestamps,
+                    print_diagnose_candidate_lines, drop_failed_sample_candidate, require_sample_cluster_timestamps);
             }
             current_event = ReconEvent{};
             current_event->trigger_line = line_index;
@@ -1676,7 +2060,7 @@ ReconStatistics scan_recon_statistics(const std::string& input_path, std::option
 
         if (type == LineType::heartbeat && (!max_rows.has_value() || statistics.total_lines < *max_rows) && (!max_bytes.has_value() || statistics.total_bytes_parsed + row.size() <= *max_bytes)) {
             RawLine tail{};
-            if (input.read(reinterpret_cast<char*>(tail.data()), static_cast<std::streamsize>(tail.size()))) {
+            if (input.read(reinterpret_cast<char*>(tail.data()), tail.size())) {
                 ++statistics.total_lines;
                 statistics.total_bytes_parsed += tail.size();
                 increment_stats(statistics.stats, LineType::heartbeat);
@@ -1694,12 +2078,14 @@ ReconStatistics scan_recon_statistics(const std::string& input_path, std::option
             if (type == LineType::data_daq) {
                 current_event->dq_lines.push_back(parse_data_line_struct(row));
                 current_event->dq_line_indices.push_back(line_index);
+                current_event->dq_rows.push_back(row);
             }
         }
     }
 
     if (current_event.has_value()) {
-        update_recon_statistics_from_event(statistics, *current_event);
+        update_recon_statistics_from_event(statistics, *current_event, diagnose_recon, require_consecutive_timestamps,
+            print_diagnose_candidate_lines, drop_failed_sample_candidate, require_sample_cluster_timestamps);
     }
 
     const bool stopped_by_size = max_bytes.has_value() && statistics.total_bytes_parsed < *max_bytes && statistics.total_bytes_parsed + row.size() > *max_bytes;
@@ -1707,14 +2093,14 @@ ReconStatistics scan_recon_statistics(const std::string& input_path, std::option
         const auto remaining_bytes = static_cast<std::size_t>(*max_bytes - statistics.total_bytes_parsed);
         std::vector<char> tail(remaining_bytes);
         if (remaining_bytes != 0) {
-            input.read(tail.data(), static_cast<std::streamsize>(tail.size()));
-            statistics.partial_tail_bytes = static_cast<std::size_t>(input.gcount());
+            input.read(tail.data(), tail.size());
+            statistics.partial_tail_bytes = input.gcount();
         }
     } else if (incomplete_read) {
-        statistics.partial_tail_bytes = static_cast<std::size_t>(input.gcount());
+        statistics.partial_tail_bytes = input.gcount();
     }
     if (input.bad()) {
-        throw std::runtime_error(read_failure_message(input_path, statistics.total_lines, statistics.total_bytes_parsed, input.gcount()));
+        throw std::runtime_error(read_failure_message(input_path, statistics.total_lines, statistics.total_bytes_parsed, static_cast<std::streamsize>(input.gcount())));
     }
     if (statistics.partial_tail_bytes != 0) {
         increment_stats(statistics.stats, LineType::partial_tail);
@@ -1743,7 +2129,8 @@ std::array<std::vector<std::size_t>, 256> sample_indices_by_gbt(const ReconEvent
     return indices_by_gbt;
 }
 
-std::array<std::vector<std::vector<std::size_t>>, 256> sample_clusters_by_gbt(const ReconEvent& event, bool crc_only)
+std::array<std::vector<std::vector<std::size_t>>, 256> sample_clusters_by_gbt(const ReconEvent& event, bool crc_only,
+    bool require_sample_cluster_timestamps = true)
 {
     std::array<std::vector<std::vector<std::size_t>>, 256> clusters_by_gbt;
     const auto indices_by_gbt = sample_indices_by_gbt(event, crc_only);
@@ -1756,7 +2143,7 @@ std::array<std::vector<std::vector<std::size_t>>, 256> sample_clusters_by_gbt(co
         for (std::size_t index = 1; index < indices.size(); ++index) {
             const auto previous_timestamp = event.samples[indices[index - 1]].first_timestamp;
             const auto timestamp = event.samples[indices[index]].first_timestamp;
-            if (timestamp == previous_timestamp + bp::kSampleLegalLineCount + 1) {
+            if (!require_sample_cluster_timestamps || timestamp == previous_timestamp + bp::kSampleLegalLineCount + 1) {
                 cluster.push_back(indices[index]);
                 continue;
             }
@@ -1767,6 +2154,55 @@ std::array<std::vector<std::vector<std::size_t>>, 256> sample_clusters_by_gbt(co
         clusters_by_gbt[gbt_index].push_back(cluster);
     }
     return clusters_by_gbt;
+}
+
+std::string format_size_vector(const std::vector<std::size_t>& values)
+{
+    if (values.empty()) {
+        return "[]";
+    }
+    std::ostringstream message;
+    message << '[';
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index != 0) {
+            message << ", ";
+        }
+        message << values[index];
+    }
+    message << ']';
+    return message.str();
+}
+
+void diagnose_sample_cluster_breaks(const ReconEvent& event, bool crc_only, const std::array<bool, 256>& required_gbts, std::size_t peak_length,
+    bool require_sample_cluster_timestamps)
+{
+    const auto indices_by_gbt = sample_indices_by_gbt(event, crc_only);
+    const auto lengths_by_gbt = sample_cluster_lengths_by_gbt(event, crc_only, require_sample_cluster_timestamps);
+    spdlog::warn("001 event selection diagnose: trigger line {}, required peak sample cluster length {}, crc_only {}",
+        event.trigger_line, peak_length, crc_only ? "yes" : "no");
+    for (std::size_t gbt_index = 0; gbt_index < required_gbts.size(); ++gbt_index) {
+        if (!required_gbts[gbt_index]) {
+            continue;
+        }
+        const auto& indices = indices_by_gbt[gbt_index];
+        const auto& lengths = lengths_by_gbt[gbt_index];
+        const bool has_peak = std::find(lengths.begin(), lengths.end(), peak_length) != lengths.end();
+        spdlog::warn("001 event selection diagnose: trigger line {}, GBT {}, samples {}, cluster lengths {}{}",
+            event.trigger_line, gbt_index, indices.size(), format_size_vector(lengths), has_peak ? "" : " missing peak length");
+        if (indices.empty()) {
+            continue;
+        }
+        std::uint64_t previous_timestamp = event.samples[indices.front()].first_timestamp;
+        for (std::size_t index = 1; index < indices.size(); ++index) {
+            const auto timestamp = event.samples[indices[index]].first_timestamp;
+            const auto delta = timestamp - previous_timestamp;
+            if (require_sample_cluster_timestamps && delta != bp::kSampleLegalLineCount + 1) {
+                spdlog::warn("001 event selection diagnose: trigger line {}, GBT {}, sample cluster break before sample {}: previous ts {}, current ts {}, delta {}, expected {}",
+                    event.trigger_line, gbt_index, index, previous_timestamp, timestamp, delta, bp::kSampleLegalLineCount + 1);
+            }
+            previous_timestamp = timestamp;
+        }
+    }
 }
 
 std::size_t count_events_all_required_gbts_have_sample_cluster_length(const std::vector<ReconEvent>& events, bool crc_only,
@@ -1931,9 +2367,9 @@ void append_sample_to_tree_vectors(SampleEventTreeBranches& branches, const bp::
 }
 
 bool fill_sample_event_tree_entry(SampleEventTreeBranches& branches, const ReconEvent& event, std::size_t event_index,
-    bool crc_only, const std::array<bool, 256>& required_gbts, std::size_t peak_length)
+    bool crc_only, const std::array<bool, 256>& required_gbts, std::size_t peak_length, bool require_sample_cluster_timestamps = true)
 {
-    const auto clusters_by_gbt = sample_clusters_by_gbt(event, crc_only);
+    const auto clusters_by_gbt = sample_clusters_by_gbt(event, crc_only, require_sample_cluster_timestamps);
     branches.clear_vectors();
     branches.event_index = static_cast<std::uint32_t>(event_index);
     branches.trigger_line = event.trigger_line;
@@ -2007,7 +2443,8 @@ std::size_t write_sample_events_root(const ReconSummary& summary, bool crc_only_
 }
 
 std::size_t write_sample_events_root(const ReconStatistics& statistics, bool crc_only_sample_clusters,
-    std::optional<std::size_t> max_rows, std::optional<std::uintmax_t> max_bytes)
+    std::optional<std::size_t> max_rows, std::optional<std::uintmax_t> max_bytes, bool require_consecutive_timestamps = true,
+    bool drop_failed_sample_candidate = false, bool diagnose_event_selection = false, bool require_sample_cluster_timestamps = true)
 {
     const auto& sample_cluster_lengths = crc_only_sample_clusters
         ? statistics.sample_cluster_lengths_by_gbt_crc
@@ -2034,13 +2471,7 @@ std::size_t write_sample_events_root(const ReconStatistics& statistics, bool crc
         return 0;
     }
 
-    std::vector<char> input_buffer(kInputBufferSize);
-    std::ifstream input;
-    input.rdbuf()->pubsetbuf(input_buffer.data(), static_cast<std::streamsize>(input_buffer.size()));
-    input.open(statistics.input_path, std::ios::binary);
-    if (!input) {
-        throw std::runtime_error("failed to open input file: " + statistics.input_path);
-    }
+    RawInput input(statistics.input_path);
 
     std::optional<ReconEvent> current_event;
     RawLine row{};
@@ -2053,17 +2484,20 @@ std::size_t write_sample_events_root(const ReconStatistics& statistics, bool crc
         if (!current_event.has_value()) {
             return;
         }
-        build_event_samples(*current_event);
-        if (fill_sample_event_tree_entry(branches, *current_event, event_index, crc_only_sample_clusters, required_gbts, *peak_length)) {
+        build_event_samples(*current_event, false, require_consecutive_timestamps, true, drop_failed_sample_candidate);
+        if (fill_sample_event_tree_entry(branches, *current_event, event_index, crc_only_sample_clusters, required_gbts, *peak_length,
+                require_sample_cluster_timestamps)) {
             tree.Fill();
             ++entries;
+        } else if (diagnose_event_selection) {
+            diagnose_sample_cluster_breaks(*current_event, crc_only_sample_clusters, required_gbts, *peak_length, require_sample_cluster_timestamps);
         }
         ++event_index;
         current_event.reset();
     };
 
     while ((!max_rows.has_value() || total_lines < *max_rows) && (!max_bytes.has_value() || total_bytes_parsed + row.size() <= *max_bytes)) {
-        if (!input.read(reinterpret_cast<char*>(row.data()), static_cast<std::streamsize>(row.size()))) {
+        if (!input.read(reinterpret_cast<char*>(row.data()), row.size())) {
             break;
         }
 
@@ -2085,7 +2519,7 @@ std::size_t write_sample_events_root(const ReconStatistics& statistics, bool crc
 
         if (type == LineType::heartbeat && (!max_rows.has_value() || total_lines < *max_rows) && (!max_bytes.has_value() || total_bytes_parsed + row.size() <= *max_bytes)) {
             RawLine tail{};
-            if (input.read(reinterpret_cast<char*>(tail.data()), static_cast<std::streamsize>(tail.size()))) {
+            if (input.read(reinterpret_cast<char*>(tail.data()), tail.size())) {
                 ++total_lines;
                 total_bytes_parsed += tail.size();
                 if (current_event.has_value()) {
@@ -2101,13 +2535,14 @@ std::size_t write_sample_events_root(const ReconStatistics& statistics, bool crc
             if (type == LineType::data_daq) {
                 current_event->dq_lines.push_back(parse_data_line_struct(row));
                 current_event->dq_line_indices.push_back(line_index);
+                current_event->dq_rows.push_back(row);
             }
         }
     }
     flush_current_event();
 
     if (input.bad()) {
-        throw std::runtime_error(read_failure_message(statistics.input_path, total_lines, total_bytes_parsed, input.gcount()));
+        throw std::runtime_error(read_failure_message(statistics.input_path, total_lines, total_bytes_parsed, static_cast<std::streamsize>(input.gcount())));
     }
 
     tree.Write();
@@ -2170,7 +2605,7 @@ void draw_recon_hist_page(TCanvas& canvas, const std::string& pdf_path, const st
     latex.DrawLatex(0.115, 0.88, "#bf{FoCal TB2026 July}");
     latex.SetTextSize(0.032);
     latex.DrawLatex(0.115, 0.835, plot_title.c_str());
-    latex.DrawLatex(0.115, 0.795, file_name_only(input_path).c_str());
+    latex.DrawLatex(0.115, 0.795, logical_input_file_name(input_path).c_str());
     latex.DrawLatex(0.115, 0.755, run_arguments.c_str());
     latex.DrawLatex(0.115, 0.715, run_time.c_str());
 
@@ -2285,7 +2720,7 @@ void draw_cluster_hist_page(TCanvas& canvas, const std::string& pdf_path,
     latex.DrawLatex(0.115, 0.88, "#bf{FoCal TB2026 July}");
     latex.SetTextSize(0.032);
     latex.DrawLatex(0.115, 0.835, plot_title.c_str());
-    latex.DrawLatex(0.115, 0.795, file_name_only(input_path).c_str());
+    latex.DrawLatex(0.115, 0.795, logical_input_file_name(input_path).c_str());
     latex.DrawLatex(0.115, 0.755, run_arguments.c_str());
     latex.DrawLatex(0.115, 0.715, run_time.c_str());
 
@@ -2387,7 +2822,7 @@ void print_recon_summary(const ReconSummary& summary, bool crc_only_sample_clust
     const auto total_samples = total_recon_samples(summary.events);
     const auto sample_cluster_lengths = sample_cluster_lengths_by_gbt(summary.events, crc_only_sample_clusters);
     print_box("Reconstruction summary", {
-        {"File", file_name_only(summary.input_path)},
+        {"File", logical_input_file_name(summary.input_path)},
         {"PDF", summary.pdf_path.filename().string()},
         {"Sample ROOT", summary.sample_root_path.filename().string()},
         {"Sample ROOT entries", format_count(sample_root_entries)},
@@ -2411,7 +2846,7 @@ void print_recon_summary(const ReconStatistics& statistics, bool crc_only_sample
         ? statistics.sample_cluster_lengths_by_gbt_crc
         : statistics.sample_cluster_lengths_by_gbt_all;
     print_box("Reconstruction summary", {
-        {"File", file_name_only(statistics.input_path)},
+        {"File", logical_input_file_name(statistics.input_path)},
         {"PDF", statistics.pdf_path.filename().string()},
         {"Sample ROOT", statistics.sample_root_path.filename().string()},
         {"Sample ROOT entries", format_count(sample_root_entries)},
@@ -2474,7 +2909,14 @@ int main(int argc, char** argv)
         ("line-xx", "Print other [XX] lines by count or 1-based indices/ranges", cxxopts::value<std::string>())
         ("line", "Print non-[00] and non-[HB] lines by count or 1-based indices/ranges", cxxopts::value<std::string>())
         ("line-raw", "Print raw lines by count or 1-based indices/ranges", cxxopts::value<std::string>())
+        ("line-header", "Print only sample lines 0, 1, 38, and 39 for each reconstructed 40-line sample by sample count or 1-based sample ranges", cxxopts::value<std::string>())
         ("recon", "Run PT-event reconstruction and write ROOT histogram PDF under dump/001/<input filename>")
+        ("diagnose-recon", "With --recon, print detailed reasons for failed sample reconstruction candidates")
+        ("diagnose-event-selection", "With --recon, print why PT events are not written to sample_events.root")
+        ("no-diagnose-candidate-lines", "With --diagnose-recon, suppress raw line dumps for failed 40-line sample candidates")
+        ("drop-failed-sample-candidate", "With --recon, discard the whole 40-line candidate after a failed sample check instead of sliding by one line")
+        ("ignore-sample-timestamp", "With --recon, reconstruct 40-line samples without requiring consecutive DQ timestamps")
+        ("ignore-sample-cluster-timestamp", "With --recon, group samples into clusters by count only without checking sample timestamp gaps")
         ("crc", "For --recon sample clusters, only use samples where all four elinks pass CRC")
         ("max-rows", "Stop after this many full 32-byte rows", cxxopts::value<std::size_t>())
         ("size", "Stop after parsing this much input, e.g. 20KB, 20MB, 20Mb", cxxopts::value<std::string>())
@@ -2521,8 +2963,9 @@ int main(int argc, char** argv)
         set_display_mode("line-xx", DisplayMode::other);
         set_display_mode("line", DisplayMode::non_dummy_non_heartbeat);
         set_display_mode("line-raw", DisplayMode::raw);
+        set_display_mode("line-header", DisplayMode::line_header);
         if (line_mode_count > 1) {
-            throw std::invalid_argument("Use only one of --line, --line-ac, --line-dq, --line-hb, --line-bb, --line-00, --line-xx, or --line-raw at a time");
+            throw std::invalid_argument("Use only one of --line, --line-ac, --line-dq, --line-hb, --line-bb, --line-00, --line-xx, --line-raw, or --line-header at a time");
         }
         const std::optional<std::size_t> max_rows = parsed_opts.count("max-rows")
             ? std::optional<std::size_t>(parsed_opts["max-rows"].as<std::size_t>())
@@ -2533,9 +2976,17 @@ int main(int argc, char** argv)
 
         if (parsed_opts.count("recon")) {
             const bool crc_only_sample_clusters = parsed_opts.count("crc") != 0;
-            const auto recon_statistics = scan_recon_statistics(input_path, max_rows, max_bytes);
+            const bool diagnose_recon = parsed_opts.count("diagnose-recon") != 0;
+            const bool diagnose_event_selection = parsed_opts.count("diagnose-event-selection") != 0;
+            const bool require_consecutive_timestamps = parsed_opts.count("ignore-sample-timestamp") == 0;
+            const bool print_diagnose_candidate_lines = parsed_opts.count("no-diagnose-candidate-lines") == 0;
+            const bool drop_failed_sample_candidate = parsed_opts.count("drop-failed-sample-candidate") != 0;
+            const bool require_sample_cluster_timestamps = parsed_opts.count("ignore-sample-cluster-timestamp") == 0;
+            const auto recon_statistics = scan_recon_statistics(input_path, max_rows, max_bytes, diagnose_recon, require_consecutive_timestamps,
+                print_diagnose_candidate_lines, drop_failed_sample_candidate, require_sample_cluster_timestamps);
             write_recon_pdf(recon_statistics, join_arguments(argc, argv), current_time_minute(), crc_only_sample_clusters);
-            const auto sample_root_entries = write_sample_events_root(recon_statistics, crc_only_sample_clusters, max_rows, max_bytes);
+            const auto sample_root_entries = write_sample_events_root(recon_statistics, crc_only_sample_clusters, max_rows, max_bytes,
+                require_consecutive_timestamps, drop_failed_sample_candidate, diagnose_event_selection, require_sample_cluster_timestamps);
             print_summary(parse_summary_from_recon(recon_statistics));
             print_recon_summary(recon_statistics, crc_only_sample_clusters, sample_root_entries);
             spdlog::info("Wrote reconstruction PDF to {}", recon_statistics.pdf_path.string());

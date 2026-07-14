@@ -1,0 +1,32 @@
+{
+  "title": "All lpGBT ADC sum position scan, RF12, 43V bias",
+  "parameter_name": "position",
+  "parameter_unit": "",
+  "parameter_error": 0.0,
+  "parameter_error_percent": 0.0,
+  "mu_linear_fit": 0,
+  "compare_to_other_tb": 0,
+  "output": "dump/003/position_adc_sum_comparison_RF12_43V.pdf",
+  "entries": [
+    {
+      "raw": "data/run__2026_07_06__15_44_27__.raw",
+      "value": 0
+    },
+    {
+      "raw": "data/run__2026_07_07__06_11_20__.raw",
+      "value": 2
+    },
+    {
+      "raw": "data/run__2026_07_07__06_26_12__.raw",
+      "value": 3
+    },
+    {
+      "raw": "data/run__2026_07_07__06_52_18__.raw",
+      "value": 4
+    },
+    {
+      "raw": "data/run__2026_07_07__06_37_51__.raw",
+      "value": 5
+    }
+  ]
+}

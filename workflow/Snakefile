@@ -2,12 +2,17 @@ from pathlib import Path
 import json
 
 DATA_DIR = Path(config.get("data_dir", "data"))
+ZSTD_DATA_DIR = Path(config.get("zstd_data_dir", "data/zstd"))
 TEMPERATURE_ADC_SUM_CONFIG = Path(config.get("temperature_adc_sum_config", "config/temperature_adc_sum_comparison_2026_07_05.json"))
 
 
 def raw_path_for_run(wildcards):
     run_name = f"{wildcards.run}.raw"
+    zstd_name = f"{run_name}.zst"
     candidates = [
+        ZSTD_DATA_DIR / zstd_name,
+        DATA_DIR / "zstd" / zstd_name,
+        DATA_DIR / zstd_name,
         DATA_DIR / run_name,
         Path("data") / run_name,
         Path(run_name),
@@ -18,17 +23,39 @@ def raw_path_for_run(wildcards):
     return str(candidates[0])
 
 
+def run_name_from_zstd_raw(path):
+    return path.name[:-len(".raw.zst")]
+
+
 RAW_RUNS = sorted(
-    path.stem
-    for path in DATA_DIR.glob("*.raw")
+    run_name_from_zstd_raw(path)
+    for path in ZSTD_DATA_DIR.glob("*.raw.zst")
     if not path.name.startswith("._")
 )
+if not RAW_RUNS and ZSTD_DATA_DIR != DATA_DIR / "zstd":
+    RAW_RUNS = sorted(
+        run_name_from_zstd_raw(path)
+        for path in (DATA_DIR / "zstd").glob("*.raw.zst")
+        if not path.name.startswith("._")
+    )
+if not RAW_RUNS:
+    RAW_RUNS = sorted(
+        path.stem
+        for path in DATA_DIR.glob("*.raw")
+        if not path.name.startswith("._")
+    )
 if not RAW_RUNS and DATA_DIR != Path("data"):
     RAW_RUNS = sorted(
         path.stem
         for path in Path("data").glob("*.raw")
         if not path.name.startswith("._")
     )
+
+ROOTIFIED_RUNS = sorted(
+    path.parent.name[:-4]
+    for path in Path("dump/001").glob("*.raw/sample_events.root")
+    if path.parent.name.endswith(".raw")
+)
 
 SIZE_LIMIT = config.get("size_limit", "")
 CRC = bool(config.get("crc", True))
@@ -46,6 +73,10 @@ def histogram_path_from_raw(raw_path):
     return f"dump/002/{Path(raw_path).name}/event_adc_sum_histograms.root"
 
 
+def tot_histogram_path_from_raw(raw_path):
+    return f"dump/005/{Path(raw_path).name}/event_tot_sum_histograms.root"
+
+
 def histogram_paths_from_comparison_config(path):
     comparison_config = load_comparison_config(path)
     roots = []
@@ -54,6 +85,19 @@ def histogram_paths_from_comparison_config(path):
             roots.append(entry["histogram"])
         elif "raw" in entry:
             roots.append(histogram_path_from_raw(entry["raw"]))
+        else:
+            raise ValueError(f"comparison config entry in {path} needs raw or histogram")
+    return list(dict.fromkeys(roots))
+
+
+def tot_histogram_paths_from_comparison_config(path):
+    comparison_config = load_comparison_config(path)
+    roots = []
+    for entry in comparison_config.get("entries", []):
+        if "histogram" in entry:
+            roots.append(entry["histogram"])
+        elif "raw" in entry:
+            roots.append(tot_histogram_path_from_raw(entry["raw"]))
         else:
             raise ValueError(f"comparison config entry in {path} needs raw or histogram")
     return list(dict.fromkeys(roots))
@@ -92,18 +136,29 @@ ADC_SUM_CONFIGS = sorted(
 ADC_SUM_CONFIG_BY_STEM = {path.stem: path for path in ADC_SUM_CONFIGS}
 ADC_SUM_CONFIG_OUTPUTS = [output_path_from_comparison_config(path, f"dump/003/{path.stem}.pdf") for path in ADC_SUM_CONFIGS]
 ADC_SUM_CONFIG_MARKERS = expand("dump/003/config_runs/{config_stem}.done", config_stem=ADC_SUM_CONFIG_BY_STEM.keys())
+TOT_SUM_CONFIG_OUTPUTS = expand("dump/006/{config_stem}.pdf", config_stem=ADC_SUM_CONFIG_BY_STEM.keys())
+TOT_SUM_CONFIG_MARKERS = expand("dump/006/config_runs/{config_stem}.done", config_stem=ADC_SUM_CONFIG_BY_STEM.keys())
 
 
 def config_path_for_stem(wildcards):
-    return str(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem])
+    return str(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem.strip()])
 
 
 def roots_for_config_stem(wildcards):
-    return histogram_paths_from_comparison_config(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem])
+    return histogram_paths_from_comparison_config(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem.strip()])
+
+
+def tot_roots_for_config_stem(wildcards):
+    return tot_histogram_paths_from_comparison_config(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem.strip()])
 
 
 def output_for_config_stem(wildcards):
-    return output_path_from_comparison_config(ADC_SUM_CONFIG_BY_STEM[wildcards.config_stem], f"dump/003/{wildcards.config_stem}.pdf")
+    config_stem = wildcards.config_stem.strip()
+    return output_path_from_comparison_config(ADC_SUM_CONFIG_BY_STEM[config_stem], f"dump/003/{config_stem}.pdf")
+
+
+def tot_output_for_config_stem(wildcards):
+    return f"dump/006/{wildcards.config_stem.strip()}.pdf"
 
 
 rule all:
@@ -112,7 +167,11 @@ rule all:
         expand("dump/001/{run}.raw/pt_line_type_distributions.pdf", run=RAW_RUNS),
         expand("dump/002/{run}.raw/adc_val0_accumulated_waveform.pdf", run=RAW_RUNS),
         expand("dump/002/{run}.raw/event_adc_sum_histograms.root", run=RAW_RUNS),
+        expand("dump/005/{run}.raw/tot_val1_accumulated_waveform.pdf", run=RAW_RUNS),
+        expand("dump/005/{run}.raw/event_tot_sum_histograms.root", run=RAW_RUNS),
+        expand("dump/007/{run}.raw/toa_val2_adc_peak_correlation.pdf", run=RAW_RUNS),
         "dump/003/adc_sum_comparison.pdf",
+        "dump/006/tot_sum_comparison.pdf",
         TEMPERATURE_ADC_SUM_OUTPUT,
         "dump/004/qc_summary.pdf"
 
@@ -120,6 +179,30 @@ rule all:
 rule run_all_003:
     input:
         ADC_SUM_CONFIG_MARKERS
+
+
+rule run_006_all:
+    input:
+        TOT_SUM_CONFIG_OUTPUTS,
+        TOT_SUM_CONFIG_MARKERS
+
+
+rule ToA_run_all:
+    input:
+        exe=ancient("build/bin/007_ToA_Analysis")
+    log:
+        "dump/logs/007/ToA_run_all.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "find dump/001 -path '*/sample_events.root' -print | sort | "
+        "while IFS= read -r root; do "
+        "run_dir=$(basename \"$(dirname \"$root\")\"); "
+        "out_dir=\"dump/007/$run_dir\"; "
+        "mkdir -p \"$out_dir\"; "
+        "{input.exe} --input \"$root\" --output \"$out_dir/toa_val2_adc_peak_correlation.pdf\" --detailed-output \"$out_dir/toa_val2_adc_peak_correlation_detailed_waveform.pdf\"; "
+        "done > {log} 2>&1"
 
 
 rule build_001_rootifier:
@@ -172,10 +255,46 @@ rule build_004_qc:
         "cmake -S . -B build && cmake --build build --target 004_QC"
 
 
+rule build_005_tot_analysis:
+    input:
+        "CMakeLists.txt",
+        "scripts/005_ToT_Analysis.cxx"
+    output:
+        "build/bin/005_ToT_Analysis",
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 005_ToT_Analysis"
+
+
+rule build_006_tot_sum_comparison:
+    input:
+        "CMakeLists.txt",
+        "scripts/006_ToT_Sum_Comparison.cxx"
+    output:
+        "build/bin/006_ToT_Sum_Comparison"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 006_ToT_Sum_Comparison"
+
+
+rule build_007_toa_analysis:
+    input:
+        "CMakeLists.txt",
+        "scripts/007_ToA_Analysis.cxx"
+    output:
+        "build/bin/007_ToA_Analysis",
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 007_ToA_Analysis"
+
+
 rule rootify:
     input:
         raw=raw_path_for_run,
-        exe="build/bin/001_Rootifier"
+        exe=ancient("build/bin/001_Rootifier")
     output:
         root="dump/001/{run}.raw/sample_events.root",
         pdf="dump/001/{run}.raw/pt_line_type_distributions.pdf"
@@ -185,13 +304,13 @@ rule rootify:
         mem_mb=TASK_MEM_MB
     shell:
         "mkdir -p $(dirname {log}) && "
-        "{input.exe} --input {input.raw} {SIZE_ARG} {CRC_ARG} --recon > {log} 2>&1"
+        "{input.exe} --ignore-sample-timestamp --ignore-sample-cluster-timestamp --drop-failed-sample-candidate --input \"{input.raw}\" {SIZE_ARG} {CRC_ARG} --recon > {log} 2>&1"
 
 
 rule adc_analysis:
     input:
         root="dump/001/{run}.raw/sample_events.root",
-        exe="build/bin/002_ADC_Analysis"
+        exe=ancient("build/bin/002_ADC_Analysis")
     output:
         pdf="dump/002/{run}.raw/adc_val0_accumulated_waveform.pdf",
         root="dump/002/{run}.raw/event_adc_sum_histograms.root"
@@ -204,6 +323,38 @@ rule adc_analysis:
         "{input.exe} --input {input.root} > {log} 2>&1"
 
 
+rule tot_analysis:
+    input:
+        root="dump/001/{run}.raw/sample_events.root",
+        exe=ancient("build/bin/005_ToT_Analysis")
+    output:
+        pdf="dump/005/{run}.raw/tot_val1_accumulated_waveform.pdf",
+        root="dump/005/{run}.raw/event_tot_sum_histograms.root"
+    log:
+        "dump/logs/005/{run}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --input {input.root} > {log} 2>&1"
+
+
+rule toa_analysis:
+    input:
+        root=ancient("dump/001/{run}.raw/sample_events.root"),
+        exe=ancient("build/bin/007_ToA_Analysis")
+    output:
+        pdf="dump/007/{run}.raw/toa_val2_adc_peak_correlation.pdf",
+        detailed_pdf="dump/007/{run}.raw/toa_val2_adc_peak_correlation_detailed_waveform.pdf"
+    log:
+        "dump/logs/007/{run}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --input {input.root} --output {output.pdf} --detailed-output {output.detailed_pdf} > {log} 2>&1"
+
+
 rule compare_adc_sums:
     input:
         roots=expand("dump/002/{run}.raw/event_adc_sum_histograms.root", run=RAW_RUNS),
@@ -212,6 +363,21 @@ rule compare_adc_sums:
         "dump/003/adc_sum_comparison.pdf"
     log:
         "dump/logs/003/adc_sum_comparison.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) && "
+        "{input.exe} --input {input.roots} --output {output} > {log} 2>&1"
+
+
+rule compare_tot_sums:
+    input:
+        roots=expand("dump/005/{run}.raw/event_tot_sum_histograms.root", run=RAW_RUNS),
+        exe="build/bin/006_ToT_Sum_Comparison"
+    output:
+        "dump/006/tot_sum_comparison.pdf"
+    log:
+        "dump/logs/006/tot_sum_comparison.log"
     resources:
         mem_mb=TASK_MEM_MB
     shell:
@@ -231,11 +397,30 @@ rule compare_adc_sums_config:
     resources:
         mem_mb=TASK_MEM_MB
     shell:
-        "mkdir -p $(dirname {log}) && "
-        "mkdir -p $(dirname {output.marker}) && "
-        "{input.exe} --config {input.config} > {log} 2>&1 && "
-        "pdf=$(python3 -c 'import json, sys; config=json.load(open(sys.argv[1])); print(config.get(\"output\", \"dump/003/\" + sys.argv[2] + \".pdf\"))' {input.config} {wildcards.config_stem}) && "
-        "test -s \"$pdf\" && touch {output.marker}"
+        "mkdir -p \"$(dirname \"{log}\")\" && "
+        "mkdir -p \"$(dirname \"{output.marker}\")\" && "
+        "{input.exe} --config \"{input.config}\" > \"{log}\" 2>&1 && "
+        "pdf=$(python3 -c 'import json, sys; config=json.load(open(sys.argv[1])); print(config.get(\"output\", \"dump/003/\" + sys.argv[2] + \".pdf\"))' \"{input.config}\" \"{wildcards.config_stem}\") && "
+        "test -s \"$pdf\" && touch \"{output.marker}\""
+
+
+rule compare_tot_sums_config:
+    input:
+        config=config_path_for_stem,
+        roots=tot_roots_for_config_stem,
+        exe="build/bin/006_ToT_Sum_Comparison"
+    output:
+        pdf="dump/006/{config_stem}.pdf",
+        marker="dump/006/config_runs/{config_stem}.done"
+    log:
+        "dump/logs/006/{config_stem}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p \"$(dirname \"{log}\")\" && "
+        "mkdir -p \"$(dirname \"{output.marker}\")\" && "
+        "{input.exe} --config \"{input.config}\" --output \"{output.pdf}\" > \"{log}\" 2>&1 && "
+        "test -s \"{output.pdf}\" && touch \"{output.marker}\""
 
 
 rule compare_adc_sums_temperature_config:

@@ -61,6 +61,18 @@ if(NOT BINPARSE_INCLUDE_DIR)
 	list(APPEND missing_dependencies "binparse headers (place binparse/ under include/ or set BINPARSE_INCLUDE_DIR)")
 endif()
 
+find_path(ZSTD_INCLUDE_DIR
+	NAMES zstd.h
+	HINTS /opt/homebrew/include /usr/local/include /usr/include
+)
+find_library(ZSTD_LIBRARY
+	NAMES zstd
+	HINTS /opt/homebrew/lib /usr/local/lib /usr/lib /usr/lib/x86_64-linux-gnu
+)
+if(NOT ZSTD_INCLUDE_DIR OR NOT ZSTD_LIBRARY)
+	list(APPEND missing_dependencies "zstd (install libzstd development headers/library)")
+endif()
+
 if(missing_dependencies)
 	list(JOIN missing_dependencies "\n  - " missing_dependencies_text)
 	message(FATAL_ERROR "Missing dependencies for 001_Rootifier:\n  - ${missing_dependencies_text}")
@@ -82,6 +94,18 @@ add_executable(004_QC
 	scripts/004_QC.cxx
 )
 
+add_executable(005_ToT_Analysis
+	scripts/005_ToT_Analysis.cxx
+)
+
+add_executable(006_ToT_Sum_Comparison
+	scripts/006_ToT_Sum_Comparison.cxx
+)
+
+add_executable(007_ToA_Analysis
+	scripts/007_ToA_Analysis.cxx
+)
+
 set_target_properties(001_Rootifier PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
@@ -98,9 +122,22 @@ set_target_properties(004_QC PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
+set_target_properties(005_ToT_Analysis PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+set_target_properties(006_ToT_Sum_Comparison PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+set_target_properties(007_ToA_Analysis PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
 target_include_directories(001_Rootifier PRIVATE
 	${PROJECT_SOURCE_DIR}/include
 	${BINPARSE_INCLUDE_DIR}
+	${ZSTD_INCLUDE_DIR}
 )
 
 target_compile_options(001_Rootifier PRIVATE
@@ -126,6 +163,21 @@ target_include_directories(004_QC PRIVATE
 	${BINPARSE_INCLUDE_DIR}
 )
 
+target_include_directories(005_ToT_Analysis PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
+target_include_directories(006_ToT_Sum_Comparison PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
+target_include_directories(007_ToA_Analysis PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
 target_link_libraries(001_Rootifier PRIVATE
 	ROOT::Core
 	ROOT::RIO
@@ -135,6 +187,7 @@ target_link_libraries(001_Rootifier PRIVATE
 	ROOT::Gpad
 	ROOT::Matrix
 	ROOT::RHTTP
+	${ZSTD_LIBRARY}
 	spdlog_header_only
 	cxxopts::cxxopts
 )
@@ -162,6 +215,39 @@ target_link_libraries(003_ADC_Sum_Comparison PRIVATE
 )
 
 target_link_libraries(004_QC PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
+	spdlog_header_only
+	cxxopts::cxxopts
+)
+
+target_link_libraries(005_ToT_Analysis PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
+	spdlog_header_only
+	cxxopts::cxxopts
+)
+
+target_link_libraries(006_ToT_Sum_Comparison PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
+	spdlog_header_only
+	cxxopts::cxxopts
+)
+
+target_link_libraries(007_ToA_Analysis PRIVATE
 	ROOT::Core
 	ROOT::RIO
 	ROOT::Tree
