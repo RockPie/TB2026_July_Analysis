@@ -6,6 +6,7 @@ OUT_DIR="data/zstd"
 LEVEL="3"
 THREADS="0"
 FORCE=0
+INPUT_FILE=""
 
 usage() {
 	cat <<'USAGE'
@@ -15,6 +16,7 @@ Compress all data/*.raw files to data/zstd/*.raw.zst and verify byte-for-byte
 consistency with SHA-256 of the original stream and decompressed stream.
 
 Options:
+	-i, --input FILE     Compress only this raw file
   -d, --data-dir DIR    Input data directory (default: data)
   -o, --out-dir DIR     Output zstd directory (default: data/zstd)
   -l, --level N         zstd compression level (default: 3)
@@ -32,6 +34,10 @@ USAGE
 
 while (($#)); do
 	case "$1" in
+		-i|--input)
+			INPUT_FILE="${2:?missing value for $1}"
+			shift 2
+			;;
 		-d|--data-dir)
 			DATA_DIR="${2:?missing value for $1}"
 			shift 2
@@ -71,7 +77,15 @@ command -v stat >/dev/null || { echo "missing required command: stat" >&2; exit 
 mkdir -p "$OUT_DIR"
 
 shopt -s nullglob
-raw_files=("$DATA_DIR"/*.raw)
+if [[ -n "$INPUT_FILE" ]]; then
+	if [[ ! -f "$INPUT_FILE" ]]; then
+		echo "Input raw file does not exist: $INPUT_FILE" >&2
+		exit 1
+	fi
+	raw_files=("$INPUT_FILE")
+else
+	raw_files=("$DATA_DIR"/*.raw)
+fi
 if ((${#raw_files[@]} == 0)); then
 	echo "No raw files found under $DATA_DIR" >&2
 	exit 1

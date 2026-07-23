@@ -6,6 +6,7 @@
   "parameter_error_percent": 3.0,
   "mu_linear_fit": 1,
   "compare_to_other_tb": 1,
+  "preliminary": 0,
   "output": "dump/003/electron_energy_adc_sum_comparison_45V.pdf",
   "entries": [
     {

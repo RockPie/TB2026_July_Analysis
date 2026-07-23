@@ -6,6 +6,7 @@
   "parameter_error_percent": 0.0,
   "mu_linear_fit": 0,
   "compare_to_other_tb": 0,
+  "preliminary": 0,
   "output": "dump/003/position_adc_sum_comparison_RF12_43V.pdf",
   "entries": [
     {

@@ -56,6 +56,7 @@ struct ComparisonConfig {
 	double parameter_error_percent = 0.0;
 	bool mu_linear_fit = false;
 	bool compare_to_other_tb = false;
+	bool preliminary = false;
 	std::string output_path;
 	std::vector<ConfigEntry> entries;
 };
@@ -167,6 +168,7 @@ ComparisonConfig load_config(const std::string& config_path)
 	}
 	config.mu_linear_fit = extract_json_bool_or_number(text, "mu_linear_fit");
 	config.compare_to_other_tb = extract_json_bool_or_number(text, "compare_to_other_tb");
+	config.preliminary = extract_json_bool_or_number(text, "preliminary");
 	if (const auto output_path = extract_json_string(text, "output")) {
 		config.output_path = *output_path;
 	}
@@ -450,7 +452,20 @@ std::string parameter_display_name(const std::string& parameter_name)
 	return parameter_name == "temperature" ? "temp" : parameter_name;
 }
 
-void draw_header(const std::string& title, const std::string& run_arguments, const std::string& run_time, double x = 0.12)
+void draw_preliminary(bool preliminary, double x = 0.12, double y = 0.715)
+{
+	if (!preliminary) {
+		return;
+	}
+	TLatex latex;
+	latex.SetNDC();
+	latex.SetTextFont(42);
+	latex.SetTextAlign(13);
+	latex.SetTextSize(0.032);
+	latex.DrawLatex(x, y, "#it{Preliminary}");
+}
+
+void draw_header(const std::string& title, const std::string& run_arguments, const std::string& run_time, bool preliminary, double x = 0.12)
 {
 	TLatex latex;
 	latex.SetNDC();
@@ -462,11 +477,12 @@ void draw_header(const std::string& title, const std::string& run_arguments, con
 	latex.DrawLatex(x, 0.835, title.c_str());
 	latex.DrawLatex(x, 0.795, run_arguments.c_str());
 	latex.DrawLatex(x, 0.755, run_time.c_str());
+	draw_preliminary(preliminary, x);
 }
 
 void draw_fit_trend_page(TCanvas& canvas, const std::vector<InputHistogram>& inputs, const std::vector<std::optional<FitSummary>>& fits,
 	const std::string& output_path, const std::string& y_title, const std::string& page_title, const std::string& parameter_name,
-	const std::string& parameter_unit, const std::string& run_arguments, const std::string& run_time,
+	const std::string& parameter_unit, const std::string& run_arguments, const std::string& run_time, bool preliminary,
 	double (*value_getter)(const FitSummary&), double (*stat_getter)(const FitSummary&), double (*sys_getter)(const FitSummary&),
 	std::optional<std::pair<double, double>> y_range = std::nullopt, bool linear_fit = false)
 {
@@ -600,7 +616,7 @@ void draw_fit_trend_page(TCanvas& canvas, const std::vector<InputHistogram>& inp
 		legend.AddEntry(trend_fit.get(), "linear fit", "l");
 	}
 	legend.Draw();
-	draw_header(page_title, run_arguments, run_time, 0.15);
+	draw_header(page_title, run_arguments, run_time, preliminary, 0.15);
 	canvas.Print(output_path.c_str());
 }
 
@@ -615,7 +631,7 @@ double fit_resolution_percent_stat(const FitSummary& fit) { return fit.ratio_sta
 double fit_resolution_percent_sys(const FitSummary& fit) { return fit.ratio_sys * 100.0; }
 
 void draw_resolution_reference_comparison_page(const std::vector<InputHistogram>& inputs, const std::vector<std::optional<FitSummary>>& fits,
-	const std::string& output_path)
+	const std::string& output_path, const std::string& run_arguments, const std::string& run_time, bool preliminary)
 {
 	std::vector<std::size_t> indices;
 	for (std::size_t index = 0; index < inputs.size() && index < fits.size(); ++index) {
@@ -655,6 +671,16 @@ void draw_resolution_reference_comparison_page(const std::vector<InputHistogram>
 	}
 	comparison_canvas->SetTitle("Resolution comparison with other test beams");
 	comparison_canvas->cd();
+	std::vector<TObject*> inherited_labels;
+	for (auto* object : *comparison_canvas->GetListOfPrimitives()) {
+		if (dynamic_cast<TLatex*>(object) != nullptr) {
+			inherited_labels.push_back(object);
+		}
+	}
+	for (auto* label : inherited_labels) {
+		comparison_canvas->GetListOfPrimitives()->Remove(label);
+		delete label;
+	}
 
 	auto* tb2026_graph = new TGraphErrors(static_cast<int>(x.size()), x.data(), y.data(), x_error.data(), y_error.data());
 	tb2026_graph->SetName("tb2026_resolution_graph");
@@ -678,6 +704,7 @@ void draw_resolution_reference_comparison_page(const std::vector<InputHistogram>
 		fallback_legend->Draw();
 		comparison_canvas->Update();
 	}
+	draw_header("Resolution comparison with other test beams", run_arguments, run_time, preliminary);
 	comparison_canvas->Modified();
 	comparison_canvas->Update();
 	comparison_canvas->Print(output_path.c_str());
@@ -686,7 +713,7 @@ void draw_resolution_reference_comparison_page(const std::vector<InputHistogram>
 
 void draw_comparison(std::vector<InputHistogram>& inputs, const std::string& output_path, const std::string& title,
 	const std::string& parameter_name, const std::string& parameter_unit, const std::string& run_arguments, const std::string& run_time,
-	bool mu_linear_fit, bool compare_to_other_tb)
+	bool mu_linear_fit, bool compare_to_other_tb, bool preliminary)
 {
 	if (inputs.empty()) {
 		throw std::runtime_error("no input histograms available");
@@ -777,18 +804,18 @@ void draw_comparison(std::vector<InputHistogram>& inputs, const std::string& out
 			legend.AddEntry(normalized_hists[index].get(), label.str().c_str(), "l");
 		}
 		legend.Draw();
-		draw_header(title + (log_y ? " log-y" : " linear-y"), run_arguments, run_time);
+		draw_header(title + (log_y ? " log-y" : " linear-y"), run_arguments, run_time, preliminary);
 		canvas.Print(output_path.c_str());
 	};
 
 	draw_page(false);
 	draw_page(true);
 	if (all_inputs_have_parameter_values(inputs) && !parameter_name.empty()) {
-		draw_fit_trend_page(canvas, inputs, fits, output_path, "#mu", title + " #mu trend", parameter_name, parameter_unit, run_arguments, run_time, fit_mean, fit_mean_stat, fit_mean_sys, std::nullopt, mu_linear_fit);
-		draw_fit_trend_page(canvas, inputs, fits, output_path, "#sigma", title + " #sigma trend", parameter_name, parameter_unit, run_arguments, run_time, fit_sigma, fit_sigma_stat, fit_sigma_sys);
-		draw_fit_trend_page(canvas, inputs, fits, output_path, "resolution [%]", title + " resolution trend", parameter_name, parameter_unit, run_arguments, run_time, fit_resolution_percent, fit_resolution_percent_stat, fit_resolution_percent_sys, std::pair<double, double>{5.0, 15.0});
+		draw_fit_trend_page(canvas, inputs, fits, output_path, "#mu", title + " #mu trend", parameter_name, parameter_unit, run_arguments, run_time, preliminary, fit_mean, fit_mean_stat, fit_mean_sys, std::nullopt, mu_linear_fit);
+		draw_fit_trend_page(canvas, inputs, fits, output_path, "#sigma", title + " #sigma trend", parameter_name, parameter_unit, run_arguments, run_time, preliminary, fit_sigma, fit_sigma_stat, fit_sigma_sys);
+		draw_fit_trend_page(canvas, inputs, fits, output_path, "resolution [%]", title + " resolution trend", parameter_name, parameter_unit, run_arguments, run_time, preliminary, fit_resolution_percent, fit_resolution_percent_stat, fit_resolution_percent_sys, std::pair<double, double>{5.0, 20.0});
 		if (compare_to_other_tb) {
-			draw_resolution_reference_comparison_page(inputs, fits, output_path);
+			draw_resolution_reference_comparison_page(inputs, fits, output_path, run_arguments, run_time, preliminary);
 		}
 	}
 	canvas.Print((output_path + "]").c_str());
@@ -822,6 +849,7 @@ int main(int argc, char** argv)
 		std::string parameter_unit;
 		bool mu_linear_fit = false;
 		bool compare_to_other_tb = false;
+		bool preliminary = false;
 		std::vector<InputHistogram> inputs;
 		if (parsed.count("config")) {
 			const auto config = load_config(parsed["config"].as<std::string>());
@@ -833,6 +861,7 @@ int main(int argc, char** argv)
 			parameter_unit = config.parameter_unit;
 			mu_linear_fit = config.mu_linear_fit;
 			compare_to_other_tb = config.compare_to_other_tb;
+			preliminary = config.preliminary;
 			inputs = load_config_histograms(config);
 		}
 
@@ -849,7 +878,7 @@ int main(int argc, char** argv)
 		if (inputs.empty()) {
 			inputs = load_histograms(input_paths);
 		}
-		draw_comparison(inputs, output_path, title, parameter_name, parameter_unit, join_arguments(argc, argv), current_time_minute(), mu_linear_fit, compare_to_other_tb);
+		draw_comparison(inputs, output_path, title, parameter_name, parameter_unit, join_arguments(argc, argv), current_time_minute(), mu_linear_fit, compare_to_other_tb, preliminary);
 
 		spdlog::info("Read {} ADC sum histogram ROOT files", inputs.size());
 		spdlog::info("Wrote ADC sum comparison PDF to {}", output_path);

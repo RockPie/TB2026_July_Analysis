@@ -2739,10 +2739,32 @@ void draw_cluster_hist_page(TCanvas& canvas, const std::string& pdf_path,
     canvas.Print(pdf_path.c_str());
 }
 
+void write_no_pt_events_pdf(const std::filesystem::path& output_dir, const std::filesystem::path& pdf_path,
+    const std::string& input_path, const std::string& run_arguments, const std::string& run_time)
+{
+    std::filesystem::create_directories(output_dir);
+    TCanvas canvas("recon_canvas", "PT event reconstruction", 1100, 800);
+    TLatex latex;
+    latex.SetNDC();
+    latex.SetTextFont(42);
+    latex.SetTextAlign(13);
+    latex.SetTextSize(0.042);
+    latex.DrawLatex(0.115, 0.88, "#bf{FoCal TB2026 July}");
+    latex.SetTextSize(0.032);
+    latex.DrawLatex(0.115, 0.835, "PT event reconstruction");
+    latex.DrawLatex(0.115, 0.795, logical_input_file_name(input_path).c_str());
+    latex.DrawLatex(0.115, 0.755, run_arguments.c_str());
+    latex.DrawLatex(0.115, 0.715, run_time.c_str());
+    latex.SetTextSize(0.040);
+    latex.DrawLatex(0.115, 0.60, "No physical-trigger events found");
+    canvas.Print(pdf_path.string().c_str());
+}
+
 void write_recon_pdf(const ReconSummary& summary, const std::string& run_arguments, const std::string& run_time, bool crc_only_sample_clusters)
 {
     if (summary.events.empty()) {
-        throw std::runtime_error("reconstruction found no PT events; no PDF was written");
+        write_no_pt_events_pdf(summary.output_dir, summary.pdf_path, summary.input_path, run_arguments, run_time);
+        return;
     }
 
     std::filesystem::create_directories(summary.output_dir);
@@ -2781,7 +2803,8 @@ void write_recon_pdf(const ReconSummary& summary, const std::string& run_argumen
 void write_recon_pdf(const ReconStatistics& statistics, const std::string& run_arguments, const std::string& run_time, bool crc_only_sample_clusters)
 {
     if (statistics.pt_events == 0) {
-        throw std::runtime_error("reconstruction found no PT events; no PDF was written");
+        write_no_pt_events_pdf(statistics.output_dir, statistics.pdf_path, statistics.input_path, run_arguments, run_time);
+        return;
     }
 
     std::filesystem::create_directories(statistics.output_dir);

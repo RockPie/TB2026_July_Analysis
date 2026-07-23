@@ -23,8 +23,38 @@ def raw_path_for_run(wildcards):
     return str(candidates[0])
 
 
+def verification_marker_for_run(wildcards):
+    if raw_path_for_run(wildcards).endswith(".raw.zst"):
+        return f"dump/verified_zstd/{wildcards.run}.done"
+    return []
+
+
 def run_name_from_zstd_raw(path):
     return path.name[:-len(".raw.zst")]
+
+
+def has_nonempty_checksum_sidecar(path):
+    checksum_path = Path(f"{path}.sha256")
+    if not checksum_path.is_file():
+        return False
+    try:
+        fields = {
+            label: value
+            for value, label in (
+                line.rstrip("\n").split("  ", 1)
+                for line in checksum_path.read_text().splitlines()
+            )
+        }
+        return int(fields.get("original_size", "0")) > 0
+    except (OSError, ValueError):
+        return False
+
+
+VERIFIED_ZSTD_RUNS = sorted(
+    run_name_from_zstd_raw(path)
+    for path in ZSTD_DATA_DIR.glob("*.raw.zst")
+    if not path.name.startswith("._") and has_nonempty_checksum_sidecar(path)
+)
 
 
 RAW_RUNS = sorted(
@@ -62,6 +92,25 @@ CRC = bool(config.get("crc", True))
 SIZE_ARG = f"--size {SIZE_LIMIT}" if SIZE_LIMIT else ""
 CRC_ARG = "--crc" if CRC else ""
 TASK_MEM_MB = int(config.get("task_mem_mb", 4000))
+
+
+def normalize_run_name(run):
+    name = str(run).strip()
+    if name.endswith(".raw.zst"):
+        return name[:-len(".raw.zst")]
+    if name.endswith(".raw"):
+        return name[:-len(".raw")]
+    return name
+
+
+configured_single_run_adc_runs = config.get("single_run_adc_runs", [])
+if isinstance(configured_single_run_adc_runs, str):
+    configured_single_run_adc_runs = configured_single_run_adc_runs.split(",")
+SINGLE_RUN_ADC_RUNS = sorted({
+    normalize_run_name(run)
+    for run in configured_single_run_adc_runs
+    if str(run).strip()
+})
 
 
 def load_comparison_config(path):
@@ -176,6 +225,18 @@ rule all:
         "dump/004/qc_summary.pdf"
 
 
+rule rootify_all_verified:
+    input:
+        expand("dump/001/{run}.raw/sample_events.root", run=VERIFIED_ZSTD_RUNS),
+        expand("dump/001/{run}.raw/pt_line_type_distributions.pdf", run=VERIFIED_ZSTD_RUNS)
+
+
+rule run_101:
+    input:
+        expand("dump/101/{run}.raw/adc_val0_accumulated_waveform.pdf", run=SINGLE_RUN_ADC_RUNS),
+        expand("dump/101/{run}.raw/event_adc_sum_histograms.root", run=SINGLE_RUN_ADC_RUNS)
+
+
 rule run_all_003:
     input:
         ADC_SUM_CONFIG_MARKERS
@@ -229,6 +290,18 @@ rule build_002_adc_analysis:
         mem_mb=TASK_MEM_MB
     shell:
         "cmake -S . -B build && cmake --build build --target 002_ADC_Analysis"
+
+
+rule build_101_single_run_adc_analysis:
+    input:
+        "CMakeLists.txt",
+        "scripts/101_SingleRun_ADC_Analysis.cxx"
+    output:
+        "build/bin/101_SingleRun_ADC_Analysis",
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "cmake -S . -B build && cmake --build build --target 101_SingleRun_ADC_Analysis"
 
 
 rule build_003_adc_sum_comparison:
@@ -291,9 +364,44 @@ rule build_007_toa_analysis:
         "cmake -S . -B build && cmake --build build --target 007_ToA_Analysis"
 
 
+rule verify_zstd_raw:
+    input:
+        zst=lambda wildcards: str(ZSTD_DATA_DIR / f"{wildcards.run}.raw.zst"),
+        checksum=lambda wildcards: str(ZSTD_DATA_DIR / f"{wildcards.run}.raw.zst.sha256")
+    output:
+        touch("dump/verified_zstd/{run}.done")
+    log:
+        "dump/logs/verify_zstd/{run}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        r"""
+        mkdir -p "$(dirname {output})" "$(dirname {log})"
+        (
+            stored_original=$(awk -F'  ' '$2 == "original" {{print $1}}' "{input.checksum}")
+            stored_decompressed=$(awk -F'  ' '$2 == "decompressed" {{print $1}}' "{input.checksum}")
+            stored_original_size=$(awk -F'  ' '$2 == "original_size" {{print $1}}' "{input.checksum}")
+            stored_compressed_size=$(awk -F'  ' '$2 == "compressed_size" {{print $1}}' "{input.checksum}")
+            actual_compressed_size=$(stat -c '%s' "{input.zst}")
+            test -n "$stored_original"
+            test "$stored_original" = "$stored_decompressed"
+            if test "$stored_original_size" -le 0; then
+                echo "cannot rootify empty raw stream: {input.zst}" >&2
+                exit 1
+            fi
+            test "$stored_compressed_size" = "$actual_compressed_size"
+            zstd -t -- "{input.zst}"
+            actual_decompressed=$(zstd -dc -- "{input.zst}" | sha256sum | awk '{{print $1}}')
+            test "$actual_decompressed" = "$stored_decompressed"
+            echo "verified {input.zst}"
+        ) > "{log}" 2>&1
+        """
+
+
 rule rootify:
     input:
         raw=raw_path_for_run,
+        verified=verification_marker_for_run,
         exe=ancient("build/bin/001_Rootifier")
     output:
         root="dump/001/{run}.raw/sample_events.root",
@@ -321,6 +429,22 @@ rule adc_analysis:
     shell:
         "mkdir -p $(dirname {log}) && "
         "{input.exe} --input {input.root} > {log} 2>&1"
+
+
+rule single_run_adc_analysis:
+    input:
+        root="dump/001/{run}.raw/sample_events.root",
+        exe=ancient("build/bin/101_SingleRun_ADC_Analysis")
+    output:
+        pdf="dump/101/{run}.raw/adc_val0_accumulated_waveform.pdf",
+        root="dump/101/{run}.raw/event_adc_sum_histograms.root"
+    log:
+        "dump/logs/101/{run}.log"
+    resources:
+        mem_mb=TASK_MEM_MB
+    shell:
+        "mkdir -p $(dirname {log}) $(dirname {output.pdf}) && "
+        "{input.exe} --input \"{input.root}\" --output \"{output.pdf}\" > {log} 2>&1"
 
 
 rule tot_analysis:

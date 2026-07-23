@@ -4,8 +4,13 @@
   "parameter_unit": "#circC",
   "parameter_error": 0.1,
   "mu_linear_fit": 1,
+  "preliminary": 1,
   "output": "dump/003/temperature_adc_sum_comparison.pdf",
   "entries": [
+    {
+      "raw": "data/run__2026_07_06__15_44_27__.raw",
+      "value": -27
+    },
     {
       "raw": "data/run__2026_07_05__20_34_34__.raw",
       "value": -20

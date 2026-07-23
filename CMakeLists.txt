@@ -106,6 +106,10 @@ add_executable(007_ToA_Analysis
 	scripts/007_ToA_Analysis.cxx
 )
 
+add_executable(101_SingleRun_ADC_Analysis
+	scripts/101_SingleRun_ADC_Analysis.cxx
+)
+
 set_target_properties(001_Rootifier PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
@@ -131,6 +135,10 @@ set_target_properties(006_ToT_Sum_Comparison PROPERTIES
 )
 
 set_target_properties(007_ToA_Analysis PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+set_target_properties(101_SingleRun_ADC_Analysis PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
@@ -178,6 +186,15 @@ target_include_directories(007_ToA_Analysis PRIVATE
 	${BINPARSE_INCLUDE_DIR}
 )
 
+target_include_directories(101_SingleRun_ADC_Analysis PRIVATE
+	${PROJECT_SOURCE_DIR}/include
+	${BINPARSE_INCLUDE_DIR}
+)
+
+target_compile_options(101_SingleRun_ADC_Analysis PRIVATE
+	$<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang,GNU>:-O3>
+)
+
 target_link_libraries(001_Rootifier PRIVATE
 	ROOT::Core
 	ROOT::RIO
@@ -193,6 +210,17 @@ target_link_libraries(001_Rootifier PRIVATE
 )
 
 target_link_libraries(002_ADC_Analysis PRIVATE
+	ROOT::Core
+	ROOT::RIO
+	ROOT::Tree
+	ROOT::Hist
+	ROOT::Graf
+	ROOT::Gpad
+	spdlog_header_only
+	cxxopts::cxxopts
+)
+
+target_link_libraries(101_SingleRun_ADC_Analysis PRIVATE
 	ROOT::Core
 	ROOT::RIO
 	ROOT::Tree
